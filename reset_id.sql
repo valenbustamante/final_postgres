@@ -1,0 +1,4 @@
+--ALTER SEQUENCE formulario_id_solicitud_seq RESTART WITH 1;
+--ALTER SEQUENCE asignaturas_id_asignatura_seq RESTART WITH 1;
+--ALTER SEQUENCE anexos_id_documento_seq RESTART WITH 1;
+--ALTER SEQUENCE oferta_id_programa_seq RESTART WITH 1;
