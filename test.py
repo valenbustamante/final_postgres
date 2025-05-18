@@ -22,7 +22,7 @@ def register_user(user_id, email, password, user_type):
     cur = conn.cursor()
     try:
         cur.execute(
-            "INSERT INTO usuario (id, email, contraseña, tipo_usuario) VALUES (%s, %s, %s, %s, %s)",
+            "INSERT INTO usuario (id, email, contraseña, tipo_usuario) VALUES (%s, %s, %s, %s)",
             (user_id, email, password, user_type)
         )
         conn.commit()
