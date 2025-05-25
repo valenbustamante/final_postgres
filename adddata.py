@@ -81,10 +81,16 @@ INSERT INTO asignaturas (id_programa, nombre, creditos, semestre, nombre_asignat
 
 # Homologar
 cur.execute("""
-INSERT INTO homologar (id_solicitud, estado, id_asignatura, justificacion) VALUES
-(2, 'Pendiente', 8, 'Asignatura cursada en Universidad X'),
-(5, 'Aprobada', 13, 'Materia similar validada por U. Nacional'),
-(7, 'Rechazada', 3, 'No cumple con contenidos mínimos');
+INSERT INTO homologar (id_solicitud, estado, id_asignatura, justificacion, decision) VALUES
+(1, 'Pendiente', 1, 'Solicitud enviada para revisión por parte del comité académico', 'Por definir'),
+(2, 'Pendiente', 8, 'Asignatura cursada en Universidad X', 'Por definir'),
+(3, 'Rechazada', 5, 'No se adjuntaron suficientes evidencias del contenido', 'Por definir'),
+(4, 'Aprobada', 6, 'Materia vista en otra universidad acreditada', 'Homologación aprobada'),
+(5, 'Aprobada', 13, 'Materia similar validada por U. Nacional', 'Homologación aprobada'),
+(6, 'Pendiente', 10, 'Documentación en proceso de análisis', 'Por definir'),
+(7, 'Rechazada', 3, 'No cumple con contenidos mínimos', 'Por definir'),
+(8, 'Aprobada', 12, 'Curso aceptado por convenio internacional', 'Homologación aprobada'),
+(9, 'Pendiente', 7, 'Se requiere revisión adicional de la malla curricular', 'Por definir');
 """)
 
 # Requisitos

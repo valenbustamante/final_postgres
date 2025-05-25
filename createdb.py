@@ -87,7 +87,8 @@ CREATE TABLE IF NOT EXISTS homologar (
     id_solicitud INT REFERENCES formulario(id_solicitud),
     estado VARCHAR,
     id_asignatura INT REFERENCES asignaturas(id_asignatura),
-    justificacion TEXT
+    justificacion TEXT,
+    decision TEXT
 )
 """)
 
