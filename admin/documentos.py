@@ -239,21 +239,41 @@ def display_pdf(pdf_data, file_name):
 # Contenedor de filtros
 col1, col2, col3 = st.columns([2,1,1])
 
+# Obtener el ID de la solicitud de la URL si existe
+id_solicitud_param = st.query_params.get("id", [None])[0]
+
 with col1:
-    busqueda = st.text_input("Buscar por ID de solicitud", placeholder="Ingrese el número de solicitud...")
+    st.markdown("<h4>Buscar por ID de solicitud</h4>", unsafe_allow_html=True)
+    id_filtro = st.text_input("", value=id_solicitud_param if id_solicitud_param else "", placeholder="Ingrese el número de solicitud...")
 
 with col2:
+    st.markdown("<h4>Estado</h4>", unsafe_allow_html=True)
     estado_filtro = st.selectbox(
-        "Estado",
-        ["Todos", "Pendientes", "Procesados", "Sin documentos"]
+        "",
+        ["Todos", "Pendientes", "Aprobados", "Sin documentos"]
     )
 
 with col3:
+    st.markdown("<h4>Ordenar por</h4>", unsafe_allow_html=True)
     orden = st.selectbox(
-        "Ordenar por",
+        "",
         ["Más recientes", "Más antiguos"]
     )
 
+# Botón para volver a solicitudes si llegamos desde allí
+if id_solicitud_param:
+    st.markdown("""
+    <a href="/admin/solicitudes" style="
+        display: inline-block;
+        padding: 5px 15px;
+        background-color: #484848;
+        color: white;
+        text-decoration: none;
+        border-radius: 15px;
+        font-size: 0.8em;
+        margin-bottom: 20px;
+    ">← Volver a solicitudes</a>
+    """, unsafe_allow_html=True)
 
 try:
     conn = get_connection()
@@ -281,7 +301,7 @@ try:
         JOIN oferta o ON f.id_programa = o.id_programa
         LEFT JOIN aprobados ap ON f.id_solicitud = ap.id_solicitud
         WHERE 1=1
-        """ + (" AND CAST(f.id_solicitud AS TEXT) LIKE %s" if busqueda else "") + """
+        """ + (" AND CAST(f.id_solicitud AS TEXT) LIKE %s" if id_filtro else "") + """
     )
     SELECT 
         id_solicitud,
@@ -292,14 +312,14 @@ try:
     """ + ("""
     WHERE estado_orden = """ + {
         "Pendientes": "1",
-        "Procesados": "2",
+        "Aprobados": "2",
         "Sin documentos": "3"
     }.get(estado_filtro, "estado_orden") if estado_filtro != "Todos" else "") + """
     ORDER BY estado_orden, id_solicitud """ + ("DESC" if orden == "Más recientes" else "ASC")
 
     params = []
-    if busqueda:
-        params.append(f"%{busqueda}%")
+    if id_filtro:
+        params.append(f"%{id_filtro}%")
 
     cur.execute(query, params)
     todas_solicitudes = cur.fetchall()

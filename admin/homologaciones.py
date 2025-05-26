@@ -213,11 +213,14 @@ def get_connection():
     )
 
 # Filtros
-col1, col2, col3 = st.columns([2,1,1])
+col1, col2, col3, col4 = st.columns([2,1,1,1])
+
+# Obtener el ID de la solicitud de la URL si existe
+id_solicitud_param = st.query_params.get("id", [None])[0]
 
 with col1:
     st.markdown("<h4>Buscar por ID de solicitud</h4>", unsafe_allow_html=True)
-    id_filtro = st.text_input("", placeholder="Ingrese el número de solicitud...")
+    id_filtro = st.text_input("", value=id_solicitud_param if id_solicitud_param else "", placeholder="Ingrese el número de solicitud...")
 
 with col2:
     st.markdown("<h4>Estado</h4>", unsafe_allow_html=True)
@@ -227,16 +230,39 @@ with col2:
     )
 
 with col3:
+    st.markdown("<h4>Programa</h4>", unsafe_allow_html=True)
+    programa_filtro = st.selectbox(
+        "",
+        ["Todos", "Ingeniería", "Administración", "Medicina"]  # Ajustar según los programas reales
+    )
+
+with col4:
     st.markdown("<h4>Ordenar por</h4>", unsafe_allow_html=True)
     orden = st.selectbox(
         "",
         ["Más recientes", "Más antiguos"]
     )
 
+# Botón para volver a solicitudes si llegamos desde allí
+if id_solicitud_param:
+    st.markdown("""
+    <a href="/admin/solicitudes" style="
+        display: inline-block;
+        padding: 5px 15px;
+        background-color: #484848;
+        color: white;
+        text-decoration: none;
+        border-radius: 15px;
+        font-size: 0.8em;
+        margin-bottom: 20px;
+    ">← Volver a solicitudes</a>
+    """, unsafe_allow_html=True)
+
 try:
     conn = get_connection()
     cur = conn.cursor()
 
+    # Query base para obtener solicitudes
     query = """
     SELECT h.id_solicitud, h.id_asignatura, h.estado, h.justificacion, h.decision,
            a.nombre_asignatura, a.descripcion, o.programa,
@@ -247,18 +273,22 @@ try:
     JOIN oferta o ON f.id_programa = o.id_programa
     JOIN datos d ON f.documento = d.documento
     JOIN usuario u ON d.id = u.id
-    WHERE (%s = '' OR CAST(h.id_solicitud AS TEXT) LIKE %s)
-    """ + (f"AND h.estado = '{estado_filtro}'" if estado_filtro != "Todos" else "") + """
-    ORDER BY 
-        CASE h.estado 
-            WHEN 'Pendiente' THEN 1
-            WHEN 'Rechazada' THEN 2
-            WHEN 'Aprobada' THEN 3
-            ELSE 4 
-        END,
-        h.id_solicitud """ + ("DESC" if orden == "Más recientes" else "ASC")
+    WHERE 1=1
+    """ + (" AND CAST(h.id_solicitud AS TEXT) LIKE %s" if id_filtro else "") + \
+    (" AND h.estado = %s" if estado_filtro != "Todos" else "") + \
+    (" AND o.programa = %s" if programa_filtro != "Todos" else "") + \
+    " ORDER BY h.id_solicitud " + ("DESC" if orden == "Más recientes" else "ASC")
 
-    cur.execute(query, (id_filtro, f"%{id_filtro}%"))
+    # Preparar parámetros
+    params = []
+    if id_filtro:
+        params.append(f"%{id_filtro}%")
+    if estado_filtro != "Todos":
+        params.append(estado_filtro)
+    if programa_filtro != "Todos":
+        params.append(programa_filtro)
+
+    cur.execute(query, params)
     homologaciones = cur.fetchall()
 
     if homologaciones:
