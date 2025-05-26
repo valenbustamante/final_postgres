@@ -103,7 +103,7 @@ class Usuario:
         with col_logo1:
             pass  # Espacio vacío a la izquierda
         with col_logo2:
-            st.image("Logo_uninorte_colombia.jpg", width=150, caption="")
+            st.image("student/Logo_uninorte_colombia.jpg", width=150, caption="")
 
         st.markdown('<div class="title">Solicitud de Admisión</div>',
                     unsafe_allow_html=True)
@@ -347,7 +347,7 @@ class Usuario:
         with col_logo1:
             pass  # Espacio vacío a la izquierda
         with col_logo2:
-            st.image("Logo_uninorte_colombia.jpg", width=150, caption="")
+            st.image("student/Logo_uninorte_colombia.jpg", width=150, caption="")
 
         st.markdown(
             '<div class="title">Solicitud de Transferencia Externa</div>', unsafe_allow_html=True)
@@ -493,7 +493,7 @@ class Usuario:
         with col_logo1:
             pass  # Espacio vacío a la izquierda
         with col_logo2:
-            st.image("Logo_uninorte_colombia.jpg", width=150, caption="")
+            st.image("student/Logo_uninorte_colombia.jpg", width=150, caption="")
 
         st.markdown('<div class="title">Simulación de Pago</div>',
                     unsafe_allow_html=True)
@@ -748,7 +748,7 @@ else:
     # Contenido de la página principal
     st.markdown('<div class="header">', unsafe_allow_html=True)
     st.markdown("<div style='text-align: center;'>", unsafe_allow_html=True)
-    st.image("Logo_uninorte_colombia.jpg",
+    st.image("student/Logo_uninorte_colombia.jpg",
              width=500, use_container_width=False)
     st.markdown('<div class="title">Sistema de Gestión de Usuarios</div>',
                 unsafe_allow_html=True)

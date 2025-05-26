@@ -3,7 +3,7 @@ import psycopg2
 from datetime import datetime, timezone
 import os
 from dotenv import load_dotenv
-load_dotenv()
+load_dotenv(encoding='utf-8')
 
 def get_connection():
     return psycopg2.connect(host = 'localhost', database = os.getenv("DATABASE"), user = os.getenv("USER"), password = os.getenv("PASSWORD"), port = '5432')

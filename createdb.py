@@ -97,7 +97,8 @@ CREATE TABLE IF NOT EXISTS homologar (
 cur.execute("""
 CREATE TABLE IF NOT EXISTS requisitos (
     id_programa INT NOT NULL REFERENCES oferta(id_programa),
-    nombre_doc VARCHAR
+    nombre_doc VARCHAR,
+    tipo_req TEXT
 )
 """)
 
@@ -107,7 +108,8 @@ CREATE TABLE IF NOT EXISTS anexos (
     id_documento SERIAL PRIMARY KEY,
     id_solicitud INT REFERENCES formulario(id_solicitud),
     nombre_doc VARCHAR,
-    archivo BYTEA
+    archivo BYTEA,
+    aprobacion TEXT
 );
 """)
 
