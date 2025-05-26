@@ -3,13 +3,15 @@ import psycopg2
 import pandas as pd
 import datetime
 
-def get_connection():
-    return psycopg2.connect(host = 'dpg-d0kvhcbuibrs739t0bb0-a.oregon-postgres.render.com', 
-                            database = "cdd_db",
-                            user = "cdd_user",
-                            password = "gXmnbB3JuFU3IpHYiwiZUdxbwxgHZY26", port = '5432')
 
-class Usuario :
+def get_connection():
+    return psycopg2.connect(host='dpg-d0kvhcbuibrs739t0bb0-a.oregon-postgres.render.com',
+                            database="cdd_db",
+                            user="cdd_user",
+                            password="gXmnbB3JuFU3IpHYiwiZUdxbwxgHZY26", port='5432')
+
+
+class Usuario:
     def _init_(self):
         pass
 
@@ -23,7 +25,6 @@ class Usuario :
             <style>
             @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap');
             .form-container {
-                background-color: #F5F7FA;
                 padding: 30px;
                 border-radius: 15px;
                 box-shadow: 0 6px 12px rgba(0, 0, 0, 0.1);
@@ -104,10 +105,12 @@ class Usuario :
         with col_logo2:
             st.image("Logo_uninorte_colombia.jpg", width=150, caption="")
 
-        st.markdown('<div class="title">Solicitud de Admisión</div>', unsafe_allow_html=True)
+        st.markdown('<div class="title">Solicitud de Admisión</div>',
+                    unsafe_allow_html=True)
         st.markdown('<div class="subtitle">Bienvenido a la Universidad del Norte. Completa el formulario para iniciar tu proceso de admisión.</div>', unsafe_allow_html=True)
 
-        st.markdown("Seleccione el tipo de estudiante antes de completar el formulario:")
+        st.markdown(
+            "Seleccione el tipo de estudiante antes de completar el formulario:")
 
         # Inicializar estado si no existe
         if "tipo_estudiante" not in st.session_state:
@@ -116,7 +119,8 @@ class Usuario :
             st.session_state.universidad = "Universidad del Norte"
 
         # Botones para seleccionar tipo de estudiante
-        st.markdown('<div class="student-type-buttons">', unsafe_allow_html=True)
+        st.markdown('<div class="student-type-buttons">',
+                    unsafe_allow_html=True)
         col_btn1, col_btn2, col_btn3 = st.columns(3)
         with col_btn1:
             if st.button("Regular"):
@@ -136,47 +140,61 @@ class Usuario :
 
         with st.form(key="solicitud_form"):
             # Sección 1: Información Personal
-            st.markdown('<div class="section-title">Información Personal</div>', unsafe_allow_html=True)
+            st.markdown(
+                '<div class="section-title">Información Personal</div>', unsafe_allow_html=True)
             col1, col2 = st.columns(2)
             with col1:
-                id_solicitud = st.text_input("ID de Solicitud", help="Ingrese un ID único para su solicitud")
-                documento = st.text_input("Número de Documento", help="Ingrese su número de documento")
-                fecha_nacimiento = st.date_input("Fecha de Nacimiento", min_value=datetime.date(1900, 1, 1), max_value=datetime.date.today())
+                id_solicitud = st.text_input(
+                    "ID de Solicitud", help="Ingrese un ID único para su solicitud")
+                documento = st.text_input(
+                    "Número de Documento", help="Ingrese su número de documento")
+                fecha_nacimiento = st.date_input("Fecha de Nacimiento", min_value=datetime.date(
+                    1900, 1, 1), max_value=datetime.date.today())
             with col2:
-                correo = st.text_input("Correo Electrónico", help="Ingrese su correo electrónico institucional o personal")
-                telefono = st.text_input("Número de Teléfono", help="Ingrese un número de contacto (ej. +573001234567)")
+                correo = st.text_input(
+                    "Correo Electrónico", help="Ingrese su correo electrónico institucional o personal")
+                telefono = st.text_input(
+                    "Número de Teléfono", help="Ingrese un número de contacto (ej. +573001234567)")
 
             # Sección 2: Información Académica
-            st.markdown('<div class="section-title">Información Académica</div>', unsafe_allow_html=True)
+            st.markdown(
+                '<div class="section-title">Información Académica</div>', unsafe_allow_html=True)
             col3, col4 = st.columns(2)
             with col3:
-                periodo = st.text_input("Periodo Académico", help="Ejemplo: 2025-1")
-                id_programa = st.text_input("ID del Programa", help="Ingrese el ID del programa académico")
-                modalidad = st.selectbox("Modalidad de Estudio", ["Presencial", "Virtual"], help="Seleccione la modalidad de su programa")
+                periodo = st.text_input(
+                    "Periodo Académico", help="Ejemplo: 2025-1")
+                id_programa = st.text_input(
+                    "ID del Programa", help="Ingrese el ID del programa académico")
+                modalidad = st.selectbox("Modalidad de Estudio", [
+                                         "Presencial", "Virtual"], help="Seleccione la modalidad de su programa")
             with col4:
-                st.markdown(f"**Tipo de Estudiante Seleccionado:** {st.session_state.tipo_estudiante}")
-                semestre = st.number_input("Semestre Actual", min_value=1, max_value=12, step=1, help="Ingrese su semestre actual (1-12)")
+                st.markdown(
+                    f"**Tipo de Estudiante Seleccionado:** {st.session_state.tipo_estudiante}")
+                semestre = st.number_input(
+                    "Semestre Actual", min_value=1, max_value=12, step=1, help="Ingrese su semestre actual (1-12)")
                 if st.session_state.tipo_estudiante in ["Regular", "Reingreso"]:
-                    st.text_input("Universidad", value=st.session_state.universidad, disabled=True, 
-                                 help="Este campo es automático para estudiantes regulares o de reingreso")
+                    st.text_input("Universidad", value=st.session_state.universidad, disabled=True,
+                                  help="Este campo es automático para estudiantes regulares o de reingreso")
                 else:  # Transferencia Externa
-                    universidad = st.text_input("Universidad de Origen", value=st.session_state.universidad, 
-                                               help="Ingrese el nombre de su universidad de origen")
+                    universidad = st.text_input("Universidad de Origen", value=st.session_state.universidad,
+                                                help="Ingrese el nombre de su universidad de origen")
                     st.session_state.universidad = universidad
 
             # Sección 3: Documentos
-            st.markdown('<div class="section-title">Documentos Requeridos</div>', unsafe_allow_html=True)
-            uploaded_files = st.file_uploader("Anexar Documentos", accept_multiple_files=True, type=["pdf", "jpg", "png"], 
-                                             help="Suba los documentos requeridos (certificados, identificación, etc.) en formato PDF, JPG o PNG")
+            st.markdown(
+                '<div class="section-title">Documentos Requeridos</div>', unsafe_allow_html=True)
+            uploaded_files = st.file_uploader("Anexar Documentos", accept_multiple_files=True, type=["pdf", "jpg", "png"],
+                                              help="Suba los documentos requeridos (certificados, identificación, etc.) en formato PDF, JPG o PNG")
             if uploaded_files:
                 st.write("**Documentos Subidos:**")
                 for uploaded_file in uploaded_files:
                     st.write(f"- {uploaded_file.name}")
 
             # Sección 4: Términos y Condiciones
-            st.markdown('<div class="section-title">Términos y Condiciones</div>', unsafe_allow_html=True)
-            acepta_terminos = st.checkbox("Acepto los términos y condiciones de la Universidad del Norte", 
-                                         help="Debe aceptar los términos para continuar")
+            st.markdown(
+                '<div class="section-title">Términos y Condiciones</div>', unsafe_allow_html=True)
+            acepta_terminos = st.checkbox("Acepto los términos y condiciones de la Universidad del Norte",
+                                          help="Debe aceptar los términos para continuar")
 
             # Botón de envío
             submit_button = st.form_submit_button("Enviar Solicitud")
@@ -185,19 +203,24 @@ class Usuario :
                 # Validaciones
                 error_messages = []
                 if not (1 <= semestre <= 12):
-                    error_messages.append("El semestre debe estar entre 1 y 12.")
+                    error_messages.append(
+                        "El semestre debe estar entre 1 y 12.")
                 if not correo or "@" not in correo:
-                    error_messages.append("Por favor, ingrese un correo electrónico válido.")
+                    error_messages.append(
+                        "Por favor, ingrese un correo electrónico válido.")
                 if not telefono or not telefono.strip():
-                    error_messages.append("Por favor, ingrese un número de teléfono válido.")
+                    error_messages.append(
+                        "Por favor, ingrese un número de teléfono válido.")
                 if not uploaded_files:
                     error_messages.append("Debe subir al menos un documento.")
                 if not acepta_terminos:
-                    error_messages.append("Debe aceptar los términos y condiciones.")
+                    error_messages.append(
+                        "Debe aceptar los términos y condiciones.")
 
                 if error_messages:
                     for msg in error_messages:
-                        st.markdown(f'<div class="error-message"> {msg}</div>', unsafe_allow_html=True)
+                        st.markdown(
+                            f'<div class="error-message"> {msg}</div>', unsafe_allow_html=True)
                 else:
                     solicitud_data = {
                         "id_solicitud": id_solicitud,
@@ -217,21 +240,24 @@ class Usuario :
                     try:
                         cursor.execute(
                             "INSERT INTO formulario (id_solicitud, documento, fecha_nacimiento, correo, telefono, periodo, id_programa, modalidad, tipo_estudiante, semestre, universidad) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)",
-                            (id_solicitud, documento, fecha_nacimiento, correo, telefono, periodo, id_programa, modalidad, st.session_state.tipo_estudiante, semestre, st.session_state.universidad)
+                            (id_solicitud, documento, fecha_nacimiento, correo, telefono, periodo, id_programa,
+                             modalidad, st.session_state.tipo_estudiante, semestre, st.session_state.universidad)
                         )
                         conn.commit()
-                        st.markdown('<div class="success-message">✅ Su solicitud ha sido registrada exitosamente a las 05:18 PM -05 del 24 de mayo de 2025.</div>', unsafe_allow_html=True)
+                        st.markdown(
+                            '<div class="success-message">✅ Su solicitud ha sido registrada exitosamente a las 05:18 PM -05 del 24 de mayo de 2025.</div>', unsafe_allow_html=True)
                         st.write("**Detalles de su solicitud:**")
                         st.write(solicitud_data)
                     except Exception as e:
                         conn.rollback()
-                        st.markdown(f'<div class="error-message">❌ Error al registrar la solicitud: {str(e)}</div>', unsafe_allow_html=True)
+                        st.markdown(
+                            f'<div class="error-message">❌ Error al registrar la solicitud: {str(e)}</div>', unsafe_allow_html=True)
 
         st.markdown('</div>', unsafe_allow_html=True)
         cursor.close()
         conn.close()
 
-        ##debe aparecer formulario de incripcion creado por el administrador
+        # debe aparecer formulario de incripcion creado por el administrador
     def solicitar_transferencia_externa(self):
         conn = get_connection()
         cursor = conn.cursor()
@@ -323,7 +349,8 @@ class Usuario :
         with col_logo2:
             st.image("Logo_uninorte_colombia.jpg", width=150, caption="")
 
-        st.markdown('<div class="title">Solicitud de Transferencia Externa</div>', unsafe_allow_html=True)
+        st.markdown(
+            '<div class="title">Solicitud de Transferencia Externa</div>', unsafe_allow_html=True)
         st.markdown('<div class="subtitle">Solicite la homologación de materias para su transferencia a la Universidad del Norte.</div>', unsafe_allow_html=True)
 
         # Mostrar tabla de materias homologables
@@ -334,8 +361,10 @@ class Usuario :
         st.markdown("Por favor, complete los campos a continuación:")
 
         with st.form(key="transferencia_form"):
-            seleccion = st.selectbox("Programa Académico", options=list(result['Nombre']), help="Seleccione el programa para la homologación")
-            justificacion = st.text_area("Justificación de la Homologación", help="Explique por qué solicita la homologación de materias", height=150)
+            seleccion = st.selectbox("Programa Académico", options=list(
+                result['Nombre']), help="Seleccione el programa para la homologación")
+            justificacion = st.text_area("Justificación de la Homologación",
+                                         help="Explique por qué solicita la homologación de materias", height=150)
 
             # Botón de envío
             submit_button = st.form_submit_button("Enviar Solicitud")
@@ -343,16 +372,19 @@ class Usuario :
             if submit_button:
                 # Validar que la justificación no esté vacía
                 if not justificacion.strip():
-                    st.markdown('<div class="error-message">❌ La justificación no puede estar vacía.</div>', unsafe_allow_html=True)
+                    st.markdown(
+                        '<div class="error-message">❌ La justificación no puede estar vacía.</div>', unsafe_allow_html=True)
                 else:
                     try:
                         # Aquí podrías agregar una inserción en la base de datos si es necesario
-                        st.markdown('<div class="success-message">✅ Su solicitud de transferencia externa ha sido enviada exitosamente a las 05:15 PM -05 del 24 de mayo de 2025.</div>', unsafe_allow_html=True)
+                        st.markdown(
+                            '<div class="success-message">✅ Su solicitud de transferencia externa ha sido enviada exitosamente a las 05:15 PM -05 del 24 de mayo de 2025.</div>', unsafe_allow_html=True)
                         st.write("**Detalles de su solicitud:**")
                         st.write(f"- **Programa Seleccionado:** {seleccion}")
                         st.write(f"- **Justificación:** {justificacion}")
                     except Exception as e:
-                        st.markdown(f'<div class="error-message">❌ Error al enviar la solicitud: {str(e)}</div>', unsafe_allow_html=True)
+                        st.markdown(
+                            f'<div class="error-message">❌ Error al enviar la solicitud: {str(e)}</div>', unsafe_allow_html=True)
 
         st.markdown('</div>', unsafe_allow_html=True)
         cursor.close()
@@ -463,17 +495,21 @@ class Usuario :
         with col_logo2:
             st.image("Logo_uninorte_colombia.jpg", width=150, caption="")
 
-        st.markdown('<div class="title">Simulación de Pago</div>', unsafe_allow_html=True)
-        st.markdown('<div class="subtitle">Ingrese el ID de su solicitud para simular el pago correspondiente.</div>', unsafe_allow_html=True)
+        st.markdown('<div class="title">Simulación de Pago</div>',
+                    unsafe_allow_html=True)
+        st.markdown(
+            '<div class="subtitle">Ingrese el ID de su solicitud para simular el pago correspondiente.</div>', unsafe_allow_html=True)
 
         # Formulario para ingresar el ID de solicitud
         with st.form(key="pago_form"):
-            id_solicitud = st.text_input("ID de Solicitud", help="Ingrese el ID de la solicitud para consultar el monto a pagar")
+            id_solicitud = st.text_input(
+                "ID de Solicitud", help="Ingrese el ID de la solicitud para consultar el monto a pagar")
             submit_button = st.form_submit_button("Consultar Pago")
 
             if submit_button:
                 if not id_solicitud:
-                    st.markdown('<div class="error-message"> Por favor, ingrese un ID de solicitud válido.</div>', unsafe_allow_html=True)
+                    st.markdown(
+                        '<div class="error-message"> Por favor, ingrese un ID de solicitud válido.</div>', unsafe_allow_html=True)
                 else:
                     try:
                         # Consultar la solicitud en la base de datos
@@ -484,7 +520,8 @@ class Usuario :
                         result = cursor.fetchone()
 
                         if not result:
-                            st.markdown('<div class="error-message"> No se encontró una solicitud con el ID proporcionado.</div>', unsafe_allow_html=True)
+                            st.markdown(
+                                '<div class="error-message"> No se encontró una solicitud con el ID proporcionado.</div>', unsafe_allow_html=True)
                         else:
                             tipo_estudiante, periodo = result
 
@@ -497,28 +534,35 @@ class Usuario :
                                 monto = 70000
 
                             # Resumen del pago
-                            st.markdown('<div class="payment-summary">', unsafe_allow_html=True)
-                            st.markdown(f'<p><strong>ID de Solicitud:</strong> {id_solicitud}</p>', unsafe_allow_html=True)
-                            st.markdown(f'<p><strong>Tipo de Estudiante:</strong> {tipo_estudiante}</p>', unsafe_allow_html=True)
-                            st.markdown(f'<p><strong>Periodo:</strong> {periodo}</p>', unsafe_allow_html=True)
-                            st.markdown(f'<p class="amount">Monto a Pagar: ${monto:,} COP</p>', unsafe_allow_html=True)
+                            st.markdown(
+                                '<div class="payment-summary">', unsafe_allow_html=True)
+                            st.markdown(
+                                f'<p><strong>ID de Solicitud:</strong> {id_solicitud}</p>', unsafe_allow_html=True)
+                            st.markdown(
+                                f'<p><strong>Tipo de Estudiante:</strong> {tipo_estudiante}</p>', unsafe_allow_html=True)
+                            st.markdown(
+                                f'<p><strong>Periodo:</strong> {periodo}</p>', unsafe_allow_html=True)
+                            st.markdown(
+                                f'<p class="amount">Monto a Pagar: ${monto:,} COP</p>', unsafe_allow_html=True)
                             st.markdown('</div>', unsafe_allow_html=True)
 
-                            st.markdown('<div class="success-message">✅ Pago simulado exitosamente a las 05:46 PM -05 del 24 de mayo de 2025.</div>', unsafe_allow_html=True)
+                            st.markdown(
+                                '<div class="success-message">✅ Pago simulado exitosamente a las 05:46 PM -05 del 24 de mayo de 2025.</div>', unsafe_allow_html=True)
 
                     except Exception as e:
-                        st.markdown(f'<div class="error-message">❌ Error al consultar la solicitud: {str(e)}</div>', unsafe_allow_html=True)
+                        st.markdown(
+                            f'<div class="error-message">❌ Error al consultar la solicitud: {str(e)}</div>', unsafe_allow_html=True)
 
         st.markdown('</div>', unsafe_allow_html=True)
         cursor.close()
         conn.close()
 
     def retornar_linea_de_tiempo(self):
-        #1 .formulario recibido
-        #2. esperando pago
-        #3. Revision de documentos(detallar por documento cuales han sido aprobados o no)
-        #4. si es de transferencia externa,etc. detallar que materia fueron homologadas
-        #5. Decision de aprobacion al correo 
+        # 1 .formulario recibido
+        # 2. esperando pago
+        # 3. Revision de documentos(detallar por documento cuales han sido aprobados o no)
+        # 4. si es de transferencia externa,etc. detallar que materia fueron homologadas
+        # 5. Decision de aprobacion al correo
         pass
 
 
@@ -704,8 +748,10 @@ else:
     # Contenido de la página principal
     st.markdown('<div class="header">', unsafe_allow_html=True)
     st.markdown("<div style='text-align: center;'>", unsafe_allow_html=True)
-    st.image("Logo_uninorte_colombia.jpg", width=500, use_container_width=False)
-    st.markdown('<div class="title">Sistema de Gestión de Usuarios</div>', unsafe_allow_html=True)
+    st.image("Logo_uninorte_colombia.jpg",
+             width=500, use_container_width=False)
+    st.markdown('<div class="title">Sistema de Gestión de Usuarios</div>',
+                unsafe_allow_html=True)
     st.markdown('<div class="subtitle">Bienvenidos a la Universidad del Norte - Registra tu solicitud como nuevo usuario</div>', unsafe_allow_html=True)
     st.markdown('</div>', unsafe_allow_html=True)
     st.markdown('</div>', unsafe_allow_html=True)
@@ -745,12 +791,15 @@ else:
         st.markdown('<a href="http://localhost:8501/?page=transferencia_externa" target="_blank" class="test-link">Quiero solicitar una transferencia externa</a>', unsafe_allow_html=True)
     with col3:
         # Botón que redirige al test de Graddus
-        st.markdown('<a href="https://graddus.com/" target="_blank" class="test-link">Descubre tu carrera ideal</a>', unsafe_allow_html=True)
-        st.markdown('<div class="button-description">Plataforma con IA para elegir tu carrera en 20 minutos</div>', unsafe_allow_html=True)
+        st.markdown(
+            '<a href="https://graddus.com/" target="_blank" class="test-link">Descubre tu carrera ideal</a>', unsafe_allow_html=True)
+        st.markdown(
+            '<div class="button-description">Plataforma con IA para elegir tu carrera en 20 minutos</div>', unsafe_allow_html=True)
     with col4:
         # Botón para la página de pagos
         st.markdown('<a href="http://localhost:8501/?page=pago_fake" target="_blank" class="test-link">Ir a la página de pagos</a>', unsafe_allow_html=True)
-        st.markdown('<div class="button-description">Consulta tus pagos, recibos y obligaciones pendientes</div>', unsafe_allow_html=True)
+        st.markdown(
+            '<div class="button-description">Consulta tus pagos, recibos y obligaciones pendientes</div>', unsafe_allow_html=True)
     st.markdown('</div>', unsafe_allow_html=True)
 
     st.markdown('<hr class="decorative-line">', unsafe_allow_html=True)

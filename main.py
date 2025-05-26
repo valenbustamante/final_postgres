@@ -63,7 +63,8 @@ if st.session_state.logged_in:
 
     else:
         pg = st.navigation({
-        "Tu cuenta": [st.Page('general/account.py', title = 'Tu cuenta'), st.Page('general/logout.py', title = 'Cerrar sesión')]
+        "Tu cuenta": [st.Page('general/account.py', title = 'Tu cuenta'), st.Page('general/logout.py', title = 'Cerrar sesión'),
+                      st.Page('student/sub_main.py', title = 'Inscripciones')]
     }, expanded= False)
 
             
