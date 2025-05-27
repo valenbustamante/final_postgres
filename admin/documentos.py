@@ -234,12 +234,9 @@ def display_pdf(pdf_data, file_name):
     else:
         st.warning("No se pudo cargar el documento")
 
-# Título principal con estilo
 
-# Contenedor de filtros
 col1, col2, col3 = st.columns([2,1,1])
 
-# Obtener el ID de la solicitud de la URL si existe
 id_solicitud_param = st.query_params.get("id", [None])[0]
 
 with col1:
@@ -260,7 +257,6 @@ with col3:
         ["Más recientes", "Más antiguos"]
     )
 
-# Botón para volver a solicitudes si llegamos desde allí
 if id_solicitud_param:
     st.markdown("""
     <a href="/admin/solicitudes" style="
@@ -325,12 +321,11 @@ try:
     todas_solicitudes = cur.fetchall()
 
     if todas_solicitudes:
-        # Contador de solicitudes por estado
+
         pendientes = sum(1 for s in todas_solicitudes if s[3] == 1)
         con_docs = sum(1 for s in todas_solicitudes if s[3] == 2)
         sin_docs = sum(1 for s in todas_solicitudes if s[3] == 3)
 
-        # Dashboard de resumen con nuevo estilo
         col1, col2, col3 = st.columns(3)
         with col1:
             st.markdown(f"""

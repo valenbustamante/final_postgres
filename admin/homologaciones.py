@@ -212,10 +212,8 @@ def get_connection():
         port='5432'
     )
 
-# Filtros
 col1, col2, col3, col4 = st.columns([2,1,1,1])
 
-# Obtener el ID de la solicitud de la URL si existe
 id_solicitud_param = st.query_params.get("id", [None])[0]
 
 with col1:
@@ -242,8 +240,7 @@ with col4:
         "",
         ["Más recientes", "Más antiguos"]
     )
-
-# Botón para volver a solicitudes si llegamos desde allí
+    
 if id_solicitud_param:
     st.markdown("""
     <a href="/admin/solicitudes" style="
@@ -262,7 +259,6 @@ try:
     conn = get_connection()
     cur = conn.cursor()
 
-    # Query base para obtener solicitudes
     query = """
     SELECT h.id_solicitud, h.id_asignatura, h.estado, h.justificacion, h.decision,
            a.nombre_asignatura, a.descripcion, o.programa,
@@ -279,7 +275,6 @@ try:
     (" AND o.programa = %s" if programa_filtro != "Todos" else "") + \
     " ORDER BY h.id_solicitud " + ("DESC" if orden == "Más recientes" else "ASC")
 
-    # Preparar parámetros
     params = []
     if id_filtro:
         params.append(f"%{id_filtro}%")
@@ -292,12 +287,10 @@ try:
     homologaciones = cur.fetchall()
 
     if homologaciones:
-        # Contador de estados
         pendientes = sum(1 for h in homologaciones if h[2] == 'Pendiente')
         aprobadas = sum(1 for h in homologaciones if h[2] == 'Aprobada')
         rechazadas = sum(1 for h in homologaciones if h[2] == 'Rechazada')
-
-        # Dashboard de resumen
+        
         col1, col2, col3 = st.columns(3)
         with col1:
             st.markdown(f"""
@@ -365,7 +358,6 @@ try:
                     <p>{decision}</p>
                     </div>""", unsafe_allow_html=True)
 
-                # Formulario para actualizar resolución
                 with st.form(key=f"form_{id_solicitud}_{id_asignatura}"):
                     nuevo_estado = st.selectbox(
                         "Estado",

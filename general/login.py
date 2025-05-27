@@ -8,10 +8,10 @@ with st.container():
 
         with tabs[0]:
             st.subheader("Iniciar sesión")
-            user = st.text_input("ID de usuario", key="login_user")
-            password = st.text_input("Contraseña", type="password", key="login_password")
+            user = st.text_input("ID de usuario", key="signin_user_input")
+            password = st.text_input("Contraseña", type="password", key="signin_password_input")
 
-            if st.button("Entrar"):
+            if st.button("Entrar", key="signin_button"):
                 sesion = login_user(user, password)
                 if sesion:
                     st.session_state.logged_in = True
@@ -23,11 +23,11 @@ with st.container():
 
         with tabs[1]:
             st.subheader("Crear cuenta nueva")
-            user_id = st.text_input("ID de usuario", key="reg_user")
-            email = st.text_input("Correo electrónico", key="reg_email")
-            password = st.text_input("Contraseña", type="password", key="reg_password")
+            user_id = st.text_input("ID de usuario", key="signup_user_input")
+            email = st.text_input("Correo electrónico", key="signup_email_input")
+            password = st.text_input("Contraseña", type="password", key="signup_password_input")
 
-            if st.button("Registrarse"):
+            if st.button("Registrarse", key="signup_button"):
                 if user_id and email and password:
                     register_user(user_id, email, password, 'ESTUDIANTE')
                 else:
