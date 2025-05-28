@@ -55,7 +55,7 @@ if st.session_state.logged_in:
         "Solicitudes": [st.Page('admin/solicitudes.py', title = 'Consultar solicitudes')],
         "Aprobaciones": [st.Page('admin/documentos.py', title = 'Aprobar documentos'), 
                           st.Page('admin/homologaciones.py', title = 'Aprobar homologaciones'),
-                          st.Page('admin/inscripciones.py', title = 'Aprobar solicitudes')],
+                          st.Page('admin/ins_test.py', title = 'Aprobar solicitudes')],
         "Pagos": [st.Page('admin/pagos.py', title = 'Consulta de pagos')]
         }
         , expanded= False)
