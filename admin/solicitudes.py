@@ -307,8 +307,8 @@ try:
     """ + (" AND CAST(f.id_solicitud AS TEXT) LIKE %s" if id_filtro else "") + \
     (" AND CASE WHEN %s = 'Prospecto' THEN f.semestre = 1 ELSE f.semestre > 1 END" if tipo_filtro != "Todos" else "") + \
     (" AND CASE " + \
-     "WHEN %s = 'Pendientes' THEN EXISTS (SELECT 1 FROM anexos a WHERE a.id_solicitud = f.id_solicitud AND a.aprobacion = 'Pendiente') " + \
-     "WHEN %s = 'Aprobados' THEN EXISTS (SELECT 1 FROM anexos a WHERE a.id_solicitud = f.id_solicitud AND a.aprobacion = 'Aprobada') " + \
+     "WHEN %s = 'Pendientes' THEN EXISTS (SELECT 1 FROM anexos a WHERE a.id_solicitud = f.id_solicitud AND a.aprobacion = 'pendiente') " + \
+     "WHEN %s = 'Aprobados' THEN EXISTS (SELECT 1 FROM anexos a WHERE a.id_solicitud = f.id_solicitud AND a.aprobacion = 'aprobado') " + \
      "WHEN %s = 'Sin documentos' THEN NOT EXISTS (SELECT 1 FROM anexos a WHERE a.id_solicitud = f.id_solicitud) " + \
      "ELSE true END" if estado_docs_filtro != "Todos" else "") + \
     " ORDER BY f.id_solicitud " + ("DESC" if orden == "Más recientes" else "ASC")

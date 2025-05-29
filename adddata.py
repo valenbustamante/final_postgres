@@ -4,10 +4,14 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-conn = p.connect(host = 'localhost', database = os.getenv("DATABASE"), user = os.getenv("USER"), password = os.getenv("PASSWORD"), port = '5432')
+conn = p.connect(host='dpg-d0kvhcbuibrs739t0bb0-a.oregon-postgres.render.com',
+                            database="cdd_db",
+                            user="cdd_user",
+                            password="gXmnbB3JuFU3IpHYiwiZUdxbwxgHZY26", port='5432')
 
 
 cur = conn.cursor()
+cur.execute("SET search_path TO uninorte_db;")
 cur.execute("""
 INSERT INTO usuario (id, email, contraseña, tipo_usuario) VALUES
 ('admin', 'admin@test.com', 'admin', 'ADMINISTRADOR'),
@@ -24,7 +28,8 @@ INSERT INTO usuario (id, email, contraseña, tipo_usuario) VALUES
 
 # Datos personales
 cur.execute("""
-INSERT INTO datos (documento, tipo_documento, id, país, ciudad, direccion, telefono, fecha_nacimiento, nombre, apellido) VALUES
+INSERT INTO datos 
+(documento, tipo_documento, id, país, ciudad, direccion, telefono, fecha_nacimiento, nombre, apellido) VALUES
 (1001, 'CC', 'valentus', 'Colombia', 'Bogotá', 'Calle 123', 3201234567, '2000-05-20', 'Valentina', 'Suárez'),
 (1002, 'TI', 'maria123', 'Colombia', 'Medellín', 'Cra 45 #33', 3014567890, '2001-08-15', 'María', 'López'),
 (1003, 'CC', 'juanc', 'Colombia', 'Cali', 'Av 9 #10', 3005678901, '1999-02-12', 'Juan', 'Castaño'),
@@ -38,7 +43,8 @@ INSERT INTO datos (documento, tipo_documento, id, país, ciudad, direccion, tele
 
 # Oferta académica
 cur.execute("""
-INSERT INTO oferta (programa, periodo, semestres, titulo, inscripcion, matricula) VALUES
+INSERT INTO oferta 
+(programa, periodo, semestres, titulo, inscripcion, matricula) VALUES
 ('Ingeniería de Sistemas', 202510, 8, 'Ingeniero de Sistemas', 100000, 3000000),
 ('Psicología', 202510, 10, 'Psicólogo', 80000, 2800000),
 ('Administración de Empresas', 202510, 9, 'Administrador', 95000, 2600000),
@@ -63,7 +69,8 @@ INSERT INTO formulario (documento, periodo, id_programa, tipo_estudiante, semest
 
 # Asignaturas
 cur.execute("""
-INSERT INTO asignaturas (id_programa, nombre, creditos, semestre, nombre_asignatura, descripcion) VALUES
+INSERT INTO asignaturas 
+(id_programa, nombre, creditos, semestre, nombre_asignatura, descripcion) VALUES
 (1, 'Introducción a la Programación', 3, 1, 'Prog 1', 'Conceptos básicos de programación'),
 (1, 'Estructuras de Datos', 4, 2, 'Estructuras', 'Listas, pilas, colas, árboles'),
 (1, 'Bases de Datos', 4, 3, 'BD', 'Diseño y consulta de bases de datos'),

@@ -6,23 +6,37 @@ from dotenv import load_dotenv
 load_dotenv(encoding='utf-8')
 
 def get_connection():
-    return psycopg2.connect(host = 'localhost', database = os.getenv("DATABASE"), user = os.getenv("USER"), password = os.getenv("PASSWORD"), port = '5432')
-
+    return psycopg2.connect(host='dpg-d0kvhcbuibrs739t0bb0-a.oregon-postgres.render.com',
+                            database="cdd_db",
+                            user="cdd_user",
+                            password="gXmnbB3JuFU3IpHYiwiZUdxbwxgHZY26", port='5432',
+                            options="-c search_path=uninorte_db")
 def login_user(user_id, password):
     conn = get_connection()
     cur = conn.cursor()
-    cur.execute("SELECT id, tipo_usuario FROM usuario WHERE id=%s AND contraseña=%s", (user_id, password))
+    
+    # Establecer el esquema correcto
+    cur.execute("SET search_path TO uninorte_db")
+
+    cur.execute(
+        "SELECT TRIM(id), TRIM(tipo_usuario) FROM usuario WHERE TRIM(id) = %s AND TRIM(contraseña) = %s",
+        (user_id, password)
+    )
+
     sesion = cur.fetchone()
+    
     cur.close()
     conn.close()
     return sesion
+
 
 def register_user(user_id, email, password, user_type):
     conn = get_connection()
     cur = conn.cursor()
     try:
+
         cur.execute(
-            "INSERT INTO usuario (id, email, contraseña, tipo_usuario) VALUES (%s, %s, %s, %s)",
+            'INSERT INTO "uninorte_db"."usuario" (id, email, contraseña, tipo_usuario) VALUES (%s, %s, %s, %s)',
             (user_id, email, password, user_type)
         )
         conn.commit()
@@ -69,6 +83,7 @@ if st.session_state.logged_in:
 
             
 else:
-    pg = st.navigation(['general/login.py'])
+
+    pg = st.navigation([st.Page("general/login.py", title = 'login')])
 
 pg.run()

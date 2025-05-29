@@ -5,11 +5,14 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-conn = p.connect(host = 'localhost', database = os.getenv("DATABASE"), user = os.getenv("USER"), password = os.getenv("PASSWORD"), port = '5432')
+conn = p.connect(host='dpg-d0kvhcbuibrs739t0bb0-a.oregon-postgres.render.com',
+                            database="cdd_db",
+                            user="cdd_user",
+                            password="gXmnbB3JuFU3IpHYiwiZUdxbwxgHZY26", port='5432')
 
 
 cur = conn.cursor()
-
+cur.execute("SET search_path TO uninorte_db;")
 cur.execute("""CREATE TABLE IF NOT EXISTS usuario (
     id VARCHAR PRIMARY KEY,
     email VARCHAR NOT NULL,

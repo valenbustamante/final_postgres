@@ -12,11 +12,14 @@ with st.container():
             password = st.text_input("Contraseña", type="password", key="signin_password_input")
 
             if st.button("Entrar", key="signin_button"):
+                
                 sesion = login_user(user, password)
+
+                st.write(sesion)
                 if sesion:
                     st.session_state.logged_in = True
-                    st.session_state.user_id = sesion[0]
-                    st.session_state.user_type = sesion[1]
+                    st.session_state.user_id = sesion[0][0]
+                    st.session_state.user_type = sesion[0][1]
                     st.rerun()
                 else:
                     st.error("ID o contraseña incorrectos.")

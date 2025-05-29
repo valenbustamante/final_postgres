@@ -18,7 +18,7 @@ class Usuario:
     def crear_solicitud(self):
         conn = get_connection()
         cursor = conn.cursor()
-        cursor.execute("SET search_path TO schema_data;")
+        cursor.execute("SET search_path TO uninorte_db;")
 
         # Estilos mejorados con diseño institucional
         st.markdown("""
@@ -98,16 +98,10 @@ class Usuario:
             </style>
         """, unsafe_allow_html=True)
 
-        # Usar columnas para posicionar el logo en la esquina superior derecha
-        col_logo1, col_logo2 = st.columns([4, 1])
-        with col_logo1:
-            pass  # Espacio vacío a la izquierda
-        with col_logo2:
-            st.image("student/Logo_uninorte_colombia.jpg", width=150, caption="")
 
         st.markdown('<div class="title">Solicitud de Admisión</div>',
                     unsafe_allow_html=True)
-        st.markdown('<div class="subtitle">Bienvenido a la Universidad del Norte. Completa el formulario para iniciar tu proceso de admisión.</div>', unsafe_allow_html=True)
+        st.markdown('<div class="subtitle">Bienvenido a la La Universidad para el Futuro . Completa el formulario para iniciar tu proceso de admisión.</div>', unsafe_allow_html=True)
 
         st.markdown(
             "Seleccione el tipo de estudiante antes de completar el formulario:")
@@ -116,7 +110,7 @@ class Usuario:
         if "tipo_estudiante" not in st.session_state:
             st.session_state.tipo_estudiante = "Regular"
         if "universidad" not in st.session_state:
-            st.session_state.universidad = "Universidad del Norte"
+            st.session_state.universidad = "Universidad para el Futuro "
 
         # Botones para seleccionar tipo de estudiante
         st.markdown('<div class="student-type-buttons">',
@@ -125,11 +119,11 @@ class Usuario:
         with col_btn1:
             if st.button("Regular"):
                 st.session_state.tipo_estudiante = "Regular"
-                st.session_state.universidad = "Universidad del Norte"
+                st.session_state.universidad = "Universidad para el Futuro "
         with col_btn2:
             if st.button("Reingreso"):
                 st.session_state.tipo_estudiante = "Reingreso"
-                st.session_state.universidad = "Universidad del Norte"
+                st.session_state.universidad = "Universidad para el Futuro "
         with col_btn3:
             if st.button("Transferencia Externa"):
                 st.session_state.tipo_estudiante = "Transferencia Externa"
@@ -193,7 +187,7 @@ class Usuario:
             # Sección 4: Términos y Condiciones
             st.markdown(
                 '<div class="section-title">Términos y Condiciones</div>', unsafe_allow_html=True)
-            acepta_terminos = st.checkbox("Acepto los términos y condiciones de la Universidad del Norte",
+            acepta_terminos = st.checkbox("Acepto los términos y condiciones de La Universidad para el Futuro ",
                                           help="Debe aceptar los términos para continuar")
 
             # Botón de envío
@@ -261,8 +255,8 @@ class Usuario:
     def solicitar_transferencia_externa(self):
         conn = get_connection()
         cursor = conn.cursor()
-        cursor.execute("SET search_path TO schema_data;")
-        cursor.execute("SELECT * FROM materias_homologables")
+        cursor.execute("SET search_path TO uninorte_db;")
+        cursor.execute("SELECT nombre, descripcion FROM asignaturas")
         resultados = cursor.fetchall()
         result = {'Nombre': [], 'Descripción': []}
         for fila in resultados:
@@ -342,16 +336,9 @@ class Usuario:
             </style>
         """, unsafe_allow_html=True)
 
-        # Usar columnas para posicionar el logo en la esquina superior derecha
-        col_logo1, col_logo2 = st.columns([4, 1])
-        with col_logo1:
-            pass  # Espacio vacío a la izquierda
-        with col_logo2:
-            st.image("student/Logo_uninorte_colombia.jpg", width=150, caption="")
-
         st.markdown(
             '<div class="title">Solicitud de Transferencia Externa</div>', unsafe_allow_html=True)
-        st.markdown('<div class="subtitle">Solicite la homologación de materias para su transferencia a la Universidad del Norte.</div>', unsafe_allow_html=True)
+        st.markdown('<div class="subtitle">Solicite la homologación de materias para su transferencia a La Universidad para el Futuro.</div>', unsafe_allow_html=True)
 
         # Mostrar tabla de materias homologables
         st.markdown("**Materias Homologables Disponibles:**")
@@ -393,7 +380,7 @@ class Usuario:
     def pago_fake(self):
         conn = get_connection()
         cursor = conn.cursor()
-        cursor.execute("SET search_path TO schema_data;")
+        cursor.execute("SET search_path TO uninorte_db;")
 
         # Estilos para un diseño profesional
         st.markdown("""
@@ -489,12 +476,6 @@ class Usuario:
             </style>
         """, unsafe_allow_html=True)
 
-        col_logo1, col_logo2 = st.columns([4, 1])
-        with col_logo1:
-            pass  # Espacio vacío a la izquierda
-        with col_logo2:
-            st.image("student/Logo_uninorte_colombia.jpg", width=150, caption="")
-
         st.markdown('<div class="title">Simulación de Pago</div>',
                     unsafe_allow_html=True)
         st.markdown(
@@ -569,7 +550,6 @@ class Usuario:
 usuario = Usuario()
 
 page = st.query_params.get("page", "home")
-st.write(f"Pagina actual: {page}")
 
 # Estilo general para la página
 st.markdown("""
@@ -737,37 +717,43 @@ st.markdown("""
     </style>
 """, unsafe_allow_html=True)
 
-# Determinar qué página mostrar según el parámetro
-if page == "crear_solicitud":
+# Inicialización del page actual
+if 'page' not in st.session_state:
+    st.session_state.page = st.query_params.get("page", "main")
+
+# Lógica central de navegación
+if st.session_state.page == "crear_solicitud":
     usuario.crear_solicitud()
-elif page == "transferencia_externa":
+    if st.button("Volver al inicio"):
+        st.session_state.page = "main"
+        st.rerun()
+elif st.session_state.page == "transferencia_externa":
     usuario.solicitar_transferencia_externa()
-elif page == "pago_fake":
+    if st.button("Volver al inicio"):
+        st.session_state.page = "main"
+        st.rerun()
+elif st.session_state.page == "pago_fake":
     usuario.pago_fake()
+    if st.button("Volver al inicio"):
+        st.session_state.page = "main"
+        st.rerun()
 else:
-    # Contenido de la página principal
+    # Página principal / menú
     st.markdown('<div class="header">', unsafe_allow_html=True)
-    st.markdown("<div style='text-align: center;'>", unsafe_allow_html=True)
-    st.image("student/Logo_uninorte_colombia.jpg",
-             width=500, use_container_width=False)
-    st.markdown('<div class="title">Sistema de Gestión de Usuarios</div>',
-                unsafe_allow_html=True)
-    st.markdown('<div class="subtitle">Bienvenidos a la Universidad del Norte - Registra tu solicitud como nuevo usuario</div>', unsafe_allow_html=True)
+    st.markdown('<div class="title">Sistema de Gestión de Usuarios</div>', unsafe_allow_html=True)
+    st.markdown('<div class="subtitle">Bienvenidos a La Universidad para el Futuro  - Registra tu solicitud como nuevo usuario</div>', unsafe_allow_html=True)
     st.markdown('</div>', unsafe_allow_html=True)
     st.markdown('</div>', unsafe_allow_html=True)
 
-    st.markdown("¡Hola, futuro estudiante de la Universidad del Norte! Regístrate hoy a las 02:16 PM -05 del 22 de mayo de 2025 y comienza tu camino académico con nosotros. Estamos emocionados de tenerte.")
-    st.markdown('</div>', unsafe_allow_html=True)
-
+    st.markdown("¡Hola, futuro estudiante de La Universidad para el Futuro ! Regístrate hoy y comienza tu camino académico con nosotros. Estamos emocionados de tenerte.")
     st.markdown('<hr class="decorative-line">', unsafe_allow_html=True)
 
     st.markdown("""
         ### Información Importante para Nuevos Usuarios
         - Asegúrate de tener tu documento de identidad y datos académicos listos.
         - Revisa los requisitos en nuestra página oficial antes de registrarte.
-        - Contacta a admisiones si necesitas ayuda: admisiones@uninorte.edu.co
+        - Contacta a admisiones si necesitas ayuda: admisiones@UNIFUTURO.edu.co
     """)
-    st.markdown('</div>', unsafe_allow_html=True)
 
     st.markdown('<hr class="decorative-line">', unsafe_allow_html=True)
 
@@ -775,40 +761,43 @@ else:
         ### Beneficios para Nuevos Estudiantes
         - Acceso a tutorías personalizadas.
         - Descuentos en actividades culturales.
-        - Biblioteca digital gratuita.
     """)
-    st.markdown('</div>', unsafe_allow_html=True)
 
     st.markdown('<hr class="decorative-line">', unsafe_allow_html=True)
 
+    # Botones usando session_state para navegación interna
     st.markdown('<div class="button-container">', unsafe_allow_html=True)
     col1, col2, col3, col4 = st.columns(4)
     with col1:
-        # Botón que abre crear_solicitud en una nueva pestaña
-        st.markdown('<a href="http://localhost:8501/?page=crear_solicitud" target="_blank" class="test-link">Quiero crear la solicitud</a>', unsafe_allow_html=True)
+        if st.button('Quiero crear la solicitud'):
+            st.session_state.page = 'crear_solicitud'
+            st.rerun()
     with col2:
-        # Botón que abre transferencia_externa en una nueva pestaña
-        st.markdown('<a href="http://localhost:8501/?page=transferencia_externa" target="_blank" class="test-link">Quiero solicitar una transferencia externa</a>', unsafe_allow_html=True)
+        if st.button('Quiero solicitar una transferencia externa'):
+            st.session_state.page = 'transferencia_externa'
+            st.rerun()
     with col3:
-        # Botón que redirige al test de Graddus
         st.markdown(
-            '<a href="https://graddus.com/" target="_blank" class="test-link">Descubre tu carrera ideal</a>', unsafe_allow_html=True)
+            '<a href="https://graddus.com/" target="_blank" class="test-link">Descubre tu carrera ideal</a>', 
+            unsafe_allow_html=True)
         st.markdown(
-            '<div class="button-description">Plataforma con IA para elegir tu carrera en 20 minutos</div>', unsafe_allow_html=True)
+            '<div class="button-description">Plataforma con IA para elegir tu carrera en 20 minutos</div>', 
+            unsafe_allow_html=True)
     with col4:
-        # Botón para la página de pagos
-        st.markdown('<a href="http://localhost:8501/?page=pago_fake" target="_blank" class="test-link">Ir a la página de pagos</a>', unsafe_allow_html=True)
+        if st.button('Ir a la página de pagos'):
+            st.session_state.page = 'pago_fake'
+            st.rerun()
         st.markdown(
-            '<div class="button-description">Consulta tus pagos, recibos y obligaciones pendientes</div>', unsafe_allow_html=True)
+            '<div class="button-description">Consulta tus pagos, recibos y obligaciones pendientes</div>', 
+            unsafe_allow_html=True)
     st.markdown('</div>', unsafe_allow_html=True)
 
     st.markdown('<hr class="decorative-line">', unsafe_allow_html=True)
-
     st.markdown('<div class="footer">', unsafe_allow_html=True)
     st.markdown("""
-        Universidad del Norte - Barranquilla, Colombia<br>
-        Teléfono: +57 5 3509509 | Correo: admisiones@uninorte.edu.co<br>
+        La Universidad para el Futuro  - Barranquilla, Colombia<br>
+        Teléfono: +57 5 3509509 | Correo: admisiones@UNIFUTURO.edu.co<br>
         Dirección: Km. 5 Vía Puerto Colombia<br>
-        <a href="https://www.uninorte.edu.co" target="_blank">Visita nuestra página oficial</a>
+        <a href="https://www.UNIFUTURO.edu.co" target="_blank">Visita nuestra página oficial</a>
     """, unsafe_allow_html=True)
     st.markdown('</div>', unsafe_allow_html=True)
