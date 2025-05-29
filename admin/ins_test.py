@@ -196,11 +196,13 @@ def get_pending_approvals():
         GROUP BY id_solicitud 
         HAVING COUNT(*) = (SELECT COUNT(*) FROM requisitos WHERE id_programa = f.id_programa)
     )
+    
     AND f.id_solicitud IN (
         SELECT id_solicitud 
         FROM homologar 
         WHERE estado = 'Aprobada'
     )
+    
     AND f.id_solicitud IN (
         SELECT id_solicitud 
         FROM pagos 
