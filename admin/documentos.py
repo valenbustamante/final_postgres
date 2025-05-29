@@ -378,8 +378,8 @@ try:
                         with col1:
                             st.markdown(f"<h3 style='margin:0'>{nombre_doc}</h3>", unsafe_allow_html=True)
                         with col2:
-                            estado_doc = "APROBADO" if aprobacion == "aprobado" else "RECHAZADO" if aprobacion == "rechazado" else "PENDIENTE"
-                            estado_clase_doc = "estado-aprobado" if aprobacion == "aprobado" else "estado-rechazado" if aprobacion == "rechazado" else "estado-pendiente"
+                            estado_doc = "APROBADO" if aprobacion == "Aprobada" else "RECHAZADO" if aprobacion == "Rechazado" else "PENDIENTE"
+                            estado_clase_doc = "estado-aprobado" if aprobacion == "Aprobada" else "estado-rechazado" if aprobacion == "Rechazado" else "estado-pendiente"
                             st.markdown(f"<p class='{estado_clase_doc}' style='text-align:right'>{estado_doc}</p>", unsafe_allow_html=True)
                         
                         if archivo:
