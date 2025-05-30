@@ -3,7 +3,7 @@ import psycopg2
 from datetime import datetime
 import os
 from dotenv import load_dotenv
-from auth_utils import get_connection
+from utils import get_connection
 load_dotenv()
 
 st.title('Gestión de oferta académica')
