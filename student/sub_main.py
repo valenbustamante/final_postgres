@@ -2,13 +2,7 @@ import streamlit as st
 import psycopg2
 import pandas as pd
 import datetime
-
-
-def get_connection():
-    return psycopg2.connect(host='dpg-d0kvhcbuibrs739t0bb0-a.oregon-postgres.render.com',
-                            database="cdd_db",
-                            user="cdd_user",
-                            password="gXmnbB3JuFU3IpHYiwiZUdxbwxgHZY26", port='5432')
+from main import get_connection
 
 
 class Usuario:
@@ -132,6 +126,16 @@ class Usuario:
 
         st.markdown("Por favor, complete todos los campos a continuación:")
 
+        st.write("### Debug - Session State Information")
+        st.write("Current session state:")
+        st.write(f"Logged in: {st.session_state.logged_in}")
+        st.write(f"User ID: '{st.session_state.user_id}'")
+        st.write(f"User type: '{st.session_state.user_type}'")
+
+        # Regular account information
+        st.write("### Account Information")
+        st.write(f"User ID: {st.session_state.user_id}")
+        st.write(f"User Type: {st.session_state.user_type}")
         with st.form(key="solicitud_form"):
             # Sección 1: Información Personal
             st.markdown(

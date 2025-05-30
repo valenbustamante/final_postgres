@@ -3,14 +3,11 @@ import psycopg2
 import os
 from dotenv import load_dotenv
 import base64
+from main import get_connection
 
 load_dotenv()
 
-st.set_page_config(
-    page_title="Revisión de documentos",
-    layout="wide",
-    initial_sidebar_state="expanded"
-)
+st.title('Gestión de documentos')
 
 st.markdown("""
 <style>
@@ -201,14 +198,6 @@ st.markdown("""
 </style>
 """, unsafe_allow_html=True)
 
-def get_connection():
-    return psycopg2.connect(
-        host='localhost',
-        database=os.getenv('DATABASE'),
-        user=os.getenv('USER'),
-        password=os.getenv('PASSWORD'),
-        port='5432'
-    )
 
 def display_pdf(pdf_data, file_name):
     """Función para mostrar PDF desde datos binarios"""

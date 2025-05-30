@@ -2,14 +2,10 @@ import streamlit as st
 import psycopg2
 import os
 from dotenv import load_dotenv
-
+from main import get_connection
 load_dotenv()
 
-st.set_page_config(
-    page_title="Gestión de homologaciones",
-    layout="wide",
-    initial_sidebar_state="expanded"
-)
+st.title('Gestión de homologaciones')
 
 st.markdown("""
 <style>
@@ -203,14 +199,6 @@ st.markdown("""
 </style>
 """, unsafe_allow_html=True)
 
-def get_connection():
-    return psycopg2.connect(
-        host='localhost',
-        database=os.getenv('DATABASE'),
-        user=os.getenv('USER'),
-        password=os.getenv('PASSWORD'),
-        port='5432'
-    )
 
 col1, col2, col3, col4 = st.columns([2,1,1,1])
 

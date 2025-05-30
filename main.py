@@ -5,6 +5,10 @@ import os
 from dotenv import load_dotenv
 load_dotenv(encoding='utf-8')
 
+st.set_page_config(
+    layout="wide"
+)
+
 def get_connection():
     return psycopg2.connect(host='dpg-d0kvhcbuibrs739t0bb0-a.oregon-postgres.render.com',
                             database="cdd_db",
@@ -17,17 +21,32 @@ def login_user(user_id, password):
     
     # Establecer el esquema correcto
     cur.execute("SET search_path TO uninorte_db")
-
+    
     cur.execute(
-        "SELECT TRIM(id), TRIM(tipo_usuario) FROM usuario WHERE TRIM(id) = %s AND TRIM(contraseña) = %s",
+        """
+        SELECT id, tipo_usuario 
+        FROM usuario 
+        WHERE id = %s AND contraseña = %s
+        """,
         (user_id, password)
     )
 
-    sesion = cur.fetchone()
+    result = cur.fetchone()
+    
+    # Print debug info after query
+    print(f"Database result: {result}")
+    
+    if result:
+        # Create a tuple with stripped values
+        session_data = (str(result[0]).strip(), str(result[1]).strip())
+        print(f"Processed session data: {session_data}")
+    else:
+        session_data = None
+        print("No session data - login failed")
     
     cur.close()
     conn.close()
-    return sesion
+    return session_data
 
 
 def register_user(user_id, email, password, user_type):
@@ -54,14 +73,13 @@ def register_user(user_id, email, password, user_type):
 
 
 if 'logged_in' not in st.session_state:
-
     st.session_state.logged_in = False
     st.session_state.user_id = ''
     st.session_state.user_type = ''
 
 if st.session_state.logged_in:
-
     if st.session_state.user_type == 'ADMINISTRADOR':
+        # Debug: Show when admin navigation is triggered
         pg = st.navigation({
         "Tu cuenta": [st.Page('general/account.py', title = 'Tu cuenta'), 
                       st.Page('general/logout.py', title = 'Cerrar sesión')],
@@ -73,17 +91,13 @@ if st.session_state.logged_in:
         "Pagos": [st.Page('admin/pagos.py', title = 'Consulta de pagos')]
         }
         , expanded= False)
-    
-
     else:
+        # Debug: Show when student navigation is triggered
         pg = st.navigation({
         "Tu cuenta": [st.Page('general/account.py', title = 'Tu cuenta'), st.Page('general/logout.py', title = 'Cerrar sesión'),
                       st.Page('student/sub_main.py', title = 'Inscripciones')]
-    }, expanded= False)
-
-            
+        }, expanded= False)
 else:
-
     pg = st.navigation([st.Page("general/login.py", title = 'login')])
 
 pg.run()

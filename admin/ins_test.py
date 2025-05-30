@@ -6,10 +6,9 @@ from dotenv import load_dotenv
 from main import get_connection
 load_dotenv()
 
-st.set_page_config(
-    page_title="Aprobación de Solicitudes",
-    layout="wide"
-)
+
+st.title('Aprobación de solicitudes')
+
 
 st.markdown("""
     <style>
@@ -268,7 +267,6 @@ def reject_request(request_id):
         conn.close()
 
 def main():
-    st.title("Aprobación de Solicitudes de Inscripción")
 
     if 'user_id' not in st.session_state:
         st.session_state.user_id = None
