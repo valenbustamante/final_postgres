@@ -2,7 +2,7 @@ import streamlit as st
 import psycopg2
 import pandas as pd
 import datetime
-from main import get_connection
+from utils import get_connection
 
 
 class Usuario:

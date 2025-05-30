@@ -3,7 +3,7 @@ import psycopg2
 import os
 from dotenv import load_dotenv
 import base64
-from main import get_connection
+from utils import get_connection
 
 load_dotenv()
 

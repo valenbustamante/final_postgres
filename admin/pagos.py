@@ -2,7 +2,7 @@ import streamlit as st
 import psycopg2
 import os
 from dotenv import load_dotenv
-from main import get_connection
+from auth_utils import get_connection
 
 load_dotenv()
 
