@@ -4,13 +4,9 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-conn = p.connect(host='dpg-d0kvhcbuibrs739t0bb0-a.oregon-postgres.render.com',
-                            database="cdd_db",
-                            user="cdd_user",
-                            password="gXmnbB3JuFU3IpHYiwiZUdxbwxgHZY26", port='5432')
-
-
+conn = p.connect(host = 'localhost', database = os.getenv("DATABASE"), user = os.getenv("USER"), password = os.getenv("PASSWORD"), port = '5432')
 cur = conn.cursor()
+
 cur.execute("SET search_path TO uninorte_db;")
 cur.execute("""
 INSERT INTO usuario (id, email, contraseña, tipo_usuario) VALUES
@@ -102,15 +98,15 @@ INSERT INTO homologar (id_solicitud, estado, id_asignatura, justificacion, decis
 
 # Requisitos
 cur.execute("""
-INSERT INTO requisitos (id_programa, nombre_doc) VALUES
-(1, 'Documento identidad'),
-(1, 'Certificado de notas'),
-(2, 'Certificado EPS'),
-(2, 'Historial académico'),
-(3, 'Carta motivación'),
-(4, 'Prueba saber 11'),
-(5, 'Soporte de homologación'),
-(6, 'Carta de recomendación');
+INSERT INTO requisitos (id_programa, nombre_doc, tipo_req) VALUES
+(1, 'Documento identidad', 'Obligatorio'),
+(1, 'Certificado de notas', 'Obligatorio'),
+(2, 'Certificado EPS', 'Obligatorio'),
+(2, 'Historial académico', 'Obligatorio'),
+(3, 'Carta motivación', 'Opcional'),
+(4, 'Prueba saber 11', 'Obligatorio'),
+(5, 'Soporte de homologación', 'Obligatorio'),
+(6, 'Carta de recomendación', 'Opcional');
 """)
 
 # Pagos
