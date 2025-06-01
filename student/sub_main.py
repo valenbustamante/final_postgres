@@ -5,6 +5,7 @@ import datetime
 from utils import get_connection
 
 
+fecha_actual = datetime.datetime.now().strftime("%I:%M %p -05 del %d de %B de %Y")
 class Usuario:
     def _init_(self):
         pass
@@ -107,8 +108,7 @@ class Usuario:
             st.session_state.universidad = "Universidad para el Futuro "
 
         # Botones para seleccionar tipo de estudiante
-        st.markdown('<div class="student-type-buttons">',
-                    unsafe_allow_html=True)
+        st.markdown('<div class="student-type-buttons">', unsafe_allow_html=True)
         col_btn1, col_btn2, col_btn3 = st.columns(3)
         with col_btn1:
             if st.button("Regular"):
@@ -126,67 +126,149 @@ class Usuario:
 
         st.markdown("Por favor, complete todos los campos a continuación:")
 
-        st.write("### Debug - Session State Information")
-        st.write("Current session state:")
-        st.write(f"Logged in: {st.session_state.logged_in}")
-        st.write(f"User ID: '{st.session_state.user_id}'")
-        st.write(f"User type: '{st.session_state.user_type}'")
+        opciones_programas = {
+                    "Ingeniería de Sistemas": 1,
+                    "Psicología": 2,
+                    "Administración de Empresas": 3,
+                    "Contaduría Pública": 4,
+                    "Ingeniería Civil": 5,
+                    "Derecho": 6
+                }
+        max_semestres = {
+                    1: 8,   # Ingeniería de Sistemas
+                    2: 10,  # Psicología
+                    3: 9,   # Administración de Empresas
+                    4: 9,   # Contaduría Pública
+                    5: 10,  # Ingeniería Civil
+                    6: 10   # Derecho
+                }
+        programa_nombre = st.selectbox(
+                    "Programa académico",
+                    list(opciones_programas.keys()),
+                    help="Seleccione el programa académico al que desea aplicar. El valor seleccionado se asignará automáticamente."
+                )
+        id_programa = opciones_programas[programa_nombre]
+        max_sem = max_semestres.get(id_programa, 12)  # Valor por defecto: 12
 
-        # Regular account information
-        st.write("### Account Information")
-        st.write(f"User ID: {st.session_state.user_id}")
-        st.write(f"User Type: {st.session_state.user_type}")
+        cursor.execute("""
+            SELECT DISTINCT periodo
+            FROM uninorte_db.oferta
+            WHERE id_programa = %s
+            ORDER BY periodo DESC
+        """, (id_programa,))
+        periodos_disponibles = [row[0] for row in cursor.fetchall()]
+
         with st.form(key="solicitud_form"):
             # Sección 1: Información Personal
-            st.markdown(
-                '<div class="section-title">Información Personal</div>', unsafe_allow_html=True)
+            st.markdown('<div class="section-title">Información Personal</div>', unsafe_allow_html=True)
             col1, col2 = st.columns(2)
             with col1:
-                id_solicitud = st.text_input(
-                    "ID de Solicitud", help="Ingrese un ID único para su solicitud")
-                documento = st.text_input(
-                    "Número de Documento", help="Ingrese su número de documento")
-                fecha_nacimiento = st.date_input("Fecha de Nacimiento", min_value=datetime.date(
-                    1900, 1, 1), max_value=datetime.date.today())
+                cursor.execute("SELECT MAX(CAST(id_solicitud AS INTEGER)) FROM formulario")
+                ultimo_id = cursor.fetchone()[0]
+                # empezar desde 1
+                if ultimo_id is None:
+                    nuevo_id = 1
+                else:
+                    nuevo_id = int(ultimo_id) + 1
+                id_solicitud = str(nuevo_id)
+                st.session_state.id_solicitud = id_solicitud
+                # Mostrar al usuario como solo lectura
+                st.text_input("ID de Solicitud (generado automáticamente)", value=id_solicitud, disabled=True)
+                documento = st.text_input("Número de Documento", help="Ingrese su número de documento")
+                tipo_documento = st.selectbox("Tipo de Documento", ["CC", "TI", "CE", "Pasaporte"])
+                fecha_nacimiento = st.date_input("Fecha de Nacimiento", min_value=datetime.date(1900, 1, 1), max_value=datetime.date.today())
+                nombre = st.text_input("Nombre")
+                apellido = st.text_input("Apellido")
             with col2:
-                correo = st.text_input(
-                    "Correo Electrónico", help="Ingrese su correo electrónico institucional o personal")
-                telefono = st.text_input(
-                    "Número de Teléfono", help="Ingrese un número de contacto (ej. +573001234567)")
+                telefono = st.text_input("Teléfono de Contacto")
+                correo = st.text_input("Correo Electrónico")
+                pais = st.text_input("País")
+                ciudad = st.text_input("Ciudad")
+                direccion = st.text_input("Dirección Residencial")
 
             # Sección 2: Información Académica
-            st.markdown(
-                '<div class="section-title">Información Académica</div>', unsafe_allow_html=True)
+            st.markdown('<div class="section-title">Información Académica</div>', unsafe_allow_html=True)
             col3, col4 = st.columns(2)
             with col3:
-                periodo = st.text_input(
-                    "Periodo Académico", help="Ejemplo: 2025-1")
-                id_programa = st.text_input(
-                    "ID del Programa", help="Ingrese el ID del programa académico")
-                modalidad = st.selectbox("Modalidad de Estudio", [
-                                         "Presencial", "Virtual"], help="Seleccione la modalidad de su programa")
+                if periodos_disponibles:
+                    periodo = st.selectbox(
+                        "Periodo Académico",
+                        periodos_disponibles,
+                        help="Seleccione el periodo académico disponible para este programa"
+                    )
+                else:
+                    st.warning("⚠️ No hay periodos disponibles para el programa seleccionado.")
+                    periodo = None
+                st.text_input("Nombre del programa escogido por usted", value=programa_nombre, disabled=True
+                )
             with col4:
-                st.markdown(
-                    f"**Tipo de Estudiante Seleccionado:** {st.session_state.tipo_estudiante}")
-                semestre = st.number_input(
-                    "Semestre Actual", min_value=1, max_value=12, step=1, help="Ingrese su semestre actual (1-12)")
+                st.text_input("Tipo de estudiante", value=st.session_state.tipo_estudiante, disabled=True
+                )
+                # Condición para semestre 
+                # dentro del formulario, col3 o col4:
+                if st.session_state.tipo_estudiante == "Regular":
+                    semestre = 1
+                    st.number_input("Semestre", value=1, disabled=True, help="Los estudiantes regulares comienzan en 1")
+                else:
+                    semestre = st.number_input(
+                        "Semestre",
+                        min_value=1,
+                        max_value=max_sem,
+                        step=1,
+                        help=f"Este programa tiene un máximo de {max_sem} semestres."
+                    )
+                # Universidad 
                 if st.session_state.tipo_estudiante in ["Regular", "Reingreso"]:
-                    st.text_input("Universidad", value=st.session_state.universidad, disabled=True,
-                                  help="Este campo es automático para estudiantes regulares o de reingreso")
-                else:  # Transferencia Externa
-                    universidad = st.text_input("Universidad de Origen", value=st.session_state.universidad,
-                                                help="Ingrese el nombre de su universidad de origen")
+                    st.text_input("Universidad", value=st.session_state.universidad, disabled=True)
+                else:
+                    universidad = st.text_input("Universidad de Origen", value=st.session_state.universidad)
                     st.session_state.universidad = universidad
 
             # Sección 3: Documentos
-            st.markdown(
-                '<div class="section-title">Documentos Requeridos</div>', unsafe_allow_html=True)
-            uploaded_files = st.file_uploader("Anexar Documentos", accept_multiple_files=True, type=["pdf", "jpg", "png"],
-                                              help="Suba los documentos requeridos (certificados, identificación, etc.) en formato PDF, JPG o PNG")
-            if uploaded_files:
-                st.write("**Documentos Subidos:**")
-                for uploaded_file in uploaded_files:
-                    st.write(f"- {uploaded_file.name}")
+            st.markdown('<div class="section-title">Documentos Requeridos</div>', unsafe_allow_html=True)
+
+            try:
+                # Consulta correcta según tu base de datos y esquema
+                cursor.execute(
+                    "SELECT nombre_doc FROM uninorte_db.requisitos WHERE id_programa = %s",
+                    (id_programa,)
+                )
+                documentos_requeridos = cursor.fetchall()
+
+                if documentos_requeridos:
+                    archivos_subidos = {}
+                    for doc in documentos_requeridos:
+                        nombre_doc = doc[0]
+
+                        st.markdown(
+                            f"""
+                            <div style="background-color: #f0f2f6; padding: 15px; border-left: 5px solid #0a84ff; border-radius: 8px; margin-bottom: 15px;">
+                                <strong>{nombre_doc}</strong><br>
+                            """,
+                            unsafe_allow_html=True
+                        )
+
+                        archivo = st.file_uploader(
+                            f"Subir archivo para: {nombre_doc}",
+                            type=["pdf", "jpg", "png"],
+                            key=f"doc_{nombre_doc}"
+                        )
+
+                        st.markdown("</div>", unsafe_allow_html=True)
+
+                        if archivo:
+                            archivos_subidos[nombre_doc] = archivo
+                else:
+                    st.markdown(
+                        '<div class="info-message">⚠️ Este programa no tiene documentos requeridos definidos.</div>',
+                        unsafe_allow_html=True
+                    )
+
+            except Exception as e:
+                st.markdown(
+                    f'<div class="error-message">❌ Error al consultar los requisitos: {str(e)}</div>',
+                    unsafe_allow_html=True
+                )
 
             # Sección 4: Términos y Condiciones
             st.markdown(
@@ -201,19 +283,18 @@ class Usuario:
                 # Validaciones
                 error_messages = []
                 if not (1 <= semestre <= 12):
-                    error_messages.append(
-                        "El semestre debe estar entre 1 y 12.")
+                    error_messages.append("El semestre debe estar entre 1 y 12.")
                 if not correo or "@" not in correo:
-                    error_messages.append(
-                        "Por favor, ingrese un correo electrónico válido.")
+                    error_messages.append("Por favor, ingrese un correo electrónico válido.")
                 if not telefono or not telefono.strip():
-                    error_messages.append(
-                        "Por favor, ingrese un número de teléfono válido.")
-                if not uploaded_files:
-                    error_messages.append("Debe subir al menos un documento.")
+                    error_messages.append("Por favor, ingrese un número de teléfono válido.")
+                # Validar si TODOS los documentos requeridos fueron subidos
+                if not archivos_subidos or any(v is None for v in archivos_subidos.values()):
+                    error_messages.append("Debe subir todos los documentos requeridos para su programa académico.")
                 if not acepta_terminos:
-                    error_messages.append(
-                        "Debe aceptar los términos y condiciones.")
+                    error_messages.append("Debe aceptar los términos y condiciones.")
+                if "id_solicitud" not in st.session_state:
+                    st.session_state.id_solicitud = None
 
                 if error_messages:
                     for msg in error_messages:
@@ -221,31 +302,34 @@ class Usuario:
                             f'<div class="error-message"> {msg}</div>', unsafe_allow_html=True)
                 else:
                     solicitud_data = {
-                        "id_solicitud": id_solicitud,
+                        "id_solicitud": st.session_state.get("id_solicitud"),
                         "documento": documento,
                         "fecha_nacimiento": fecha_nacimiento,
                         "correo": correo,
                         "telefono": telefono,
                         "periodo": periodo,
                         "id_programa": id_programa,
-                        "modalidad": modalidad,
                         "tipo_estudiante": st.session_state.tipo_estudiante,
                         "semestre": semestre,
                         "universidad": st.session_state.universidad,
-                        "documentos": [file.name for file in uploaded_files] if uploaded_files else []
+                        "documentos": [file.name for file in archivos_subidos.values() if file]
                     }
 
                     try:
-                        cursor.execute(
-                            "INSERT INTO formulario (id_solicitud, documento, fecha_nacimiento, correo, telefono, periodo, id_programa, modalidad, tipo_estudiante, semestre, universidad) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)",
-                            (id_solicitud, documento, fecha_nacimiento, correo, telefono, periodo, id_programa,
-                             modalidad, st.session_state.tipo_estudiante, semestre, st.session_state.universidad)
-                        )
+                        cursor.execute("""
+                            INSERT INTO datos (documento, tipo_documento, id, país, ciudad, direccion, telefono, fecha_nacimiento, nombre, apellido)
+                            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+                            ON CONFLICT (documento) DO NOTHING
+                        """, (documento, tipo_documento, st.session_state.user_id, pais, ciudad, direccion, telefono, fecha_nacimiento, nombre, apellido  
+                        ))
+                        cursor.execute("""
+                            INSERT INTO formulario (id_solicitud, documento, periodo, id_programa, tipo_estudiante, semestre, universidad)
+                            VALUES (%s, %s, %s, %s, %s, %s, %s)
+                        """, (st.session_state.get("id_solicitud"), documento, periodo, id_programa, st.session_state.tipo_estudiante, semestre, st.session_state.universidad
+                        ))
                         conn.commit()
                         st.markdown(
-                            '<div class="success-message">✅ Su solicitud ha sido registrada exitosamente a las 05:18 PM -05 del 24 de mayo de 2025.</div>', unsafe_allow_html=True)
-                        st.write("**Detalles de su solicitud:**")
-                        st.write(solicitud_data)
+                            '<div class="success-message">✅ Su solicitud ha sido registrada exitosamente a las a las {fecha_actual}.</div>', unsafe_allow_html=True)
                     except Exception as e:
                         conn.rollback()
                         st.markdown(
@@ -369,7 +453,7 @@ class Usuario:
                     try:
                         # Aquí podrías agregar una inserción en la base de datos si es necesario
                         st.markdown(
-                            '<div class="success-message">✅ Su solicitud de transferencia externa ha sido enviada exitosamente a las 05:15 PM -05 del 24 de mayo de 2025.</div>', unsafe_allow_html=True)
+                            '<div class="success-message">✅ Su solicitud de transferencia externa ha sido enviada exitosamente a las a las {fecha_actual}.</div>', unsafe_allow_html=True)
                         st.write("**Detalles de su solicitud:**")
                         st.write(f"- **Programa Seleccionado:** {seleccion}")
                         st.write(f"- **Justificación:** {justificacion}")
@@ -489,6 +573,7 @@ class Usuario:
         with st.form(key="pago_form"):
             id_solicitud = st.text_input(
                 "ID de Solicitud", help="Ingrese el ID de la solicitud para consultar el monto a pagar")
+            
             submit_button = st.form_submit_button("Consultar Pago")
 
             if submit_button:
@@ -497,9 +582,9 @@ class Usuario:
                         '<div class="error-message"> Por favor, ingrese un ID de solicitud válido.</div>', unsafe_allow_html=True)
                 else:
                     try:
-                        # Consultar la solicitud en la base de datos
+                        # Buscar datos de la solicitud
                         cursor.execute(
-                            "SELECT tipo_estudiante, periodo FROM formulario WHERE id_solicitud = %s",
+                            "SELECT tipo_estudiante, periodo, id_programa FROM formulario WHERE id_solicitud = %s",
                             (id_solicitud,)
                         )
                         result = cursor.fetchone()
@@ -508,39 +593,41 @@ class Usuario:
                             st.markdown(
                                 '<div class="error-message"> No se encontró una solicitud con el ID proporcionado.</div>', unsafe_allow_html=True)
                         else:
-                            tipo_estudiante, periodo = result
+                            tipo_estudiante, periodo, id_programa = result
 
-                            # Determinar el monto a pagar según tipo_estudiante
-                            if tipo_estudiante == "Regular":
-                                monto = 50000
-                            elif tipo_estudiante == "Reingreso":
-                                monto = 40000
-                            else:  # Transferencia Externa
-                                monto = 70000
+                            # Buscar el nombre del programa y costo de inscripción
+                            cursor.execute(
+                                "SELECT programa, inscripcion FROM oferta WHERE id_programa = %s",
+                                (id_programa,)
+                            )
+                            programa_result = cursor.fetchone()
 
-                            # Resumen del pago
-                            st.markdown(
-                                '<div class="payment-summary">', unsafe_allow_html=True)
-                            st.markdown(
-                                f'<p><strong>ID de Solicitud:</strong> {id_solicitud}</p>', unsafe_allow_html=True)
-                            st.markdown(
-                                f'<p><strong>Tipo de Estudiante:</strong> {tipo_estudiante}</p>', unsafe_allow_html=True)
-                            st.markdown(
-                                f'<p><strong>Periodo:</strong> {periodo}</p>', unsafe_allow_html=True)
-                            st.markdown(
-                                f'<p class="amount">Monto a Pagar: ${monto:,} COP</p>', unsafe_allow_html=True)
-                            st.markdown('</div>', unsafe_allow_html=True)
+                            if not programa_result:
+                                st.markdown(
+                                    '<div class="error-message"> No se encontró información del programa académico asociado.</div>', unsafe_allow_html=True)
+                            else:
+                                programa_nombre, inscripcion = programa_result
 
-                            st.markdown(
-                                '<div class="success-message">✅ Pago simulado exitosamente a las 05:46 PM -05 del 24 de mayo de 2025.</div>', unsafe_allow_html=True)
+                                # Mostrar resumen de pago
+                                st.markdown('<div class="payment-summary">', unsafe_allow_html=True)
+                                st.markdown(f'<p><strong>ID de Solicitud:</strong> {id_solicitud}</p>', unsafe_allow_html=True)
+                                st.markdown(f'<p><strong>Tipo de Estudiante:</strong> {tipo_estudiante}</p>', unsafe_allow_html=True)
+                                st.markdown(f'<p><strong>Periodo:</strong> {periodo}</p>', unsafe_allow_html=True)
+                                st.markdown(f'<p><strong>Programa:</strong> {programa_nombre}</p>', unsafe_allow_html=True)
+                                st.markdown(f'<p class="amount">Monto a Pagar: ${inscripcion:,.2f} COP</p>', unsafe_allow_html=True)
+                                st.markdown('</div>', unsafe_allow_html=True)
 
+                                st.markdown(
+                                    f'<div class="success-message">✅ Pago simulado exitosamente a las {fecha_actual}.</div>', unsafe_allow_html=True )
                     except Exception as e:
                         st.markdown(
                             f'<div class="error-message">❌ Error al consultar la solicitud: {str(e)}</div>', unsafe_allow_html=True)
 
+        # Al final del archivo
         st.markdown('</div>', unsafe_allow_html=True)
         cursor.close()
         conn.close()
+
 
     def retornar_linea_de_tiempo(self):
         # 1 .formulario recibido
