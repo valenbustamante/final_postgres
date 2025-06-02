@@ -253,10 +253,6 @@ class Usuario:
                                 st.session_state["archivos_subidos"][nombre_doc] = archivo
                                 st.success(f"✅ Archivo subido para: {nombre_doc}")
                                 st.write(f"📄 Nombre del archivo: `{archivo.name}` ({archivo.size/1024:.1f} KB)")
-                            else:
-                                # SOLO mostramos una advertencia si el usuario NO ha subido NUNCA nada para este 'nombre_doc'
-                                if nombre_doc not in st.session_state["archivos_subidos"]:
-                                    st.warning(f"⚠️ No se ha subido archivo para: {nombre_doc}")
 
                             st.markdown("---")  # Línea divisoria entre documentos
 
@@ -321,21 +317,7 @@ class Usuario:
                     }
 
                     try:
-                        for ndoc, uploaded_file in st.session_state["archivos_subidos"].items():
-                            # Leer el contenido binario del PDF
-                            contenido_binario = uploaded_file.read()  # esto equivale a leer el archivo en 'rb'
-                            # Construir la sentencia INSERT
-                            cursor.execute(
-                                """
-                                INSERT INTO anexos (id_solicitud, nombre_doc, archivo)
-                                VALUES (%s, %s, %s);
-                                """,
-                                (
-                                    1,                          # ej. id_solicitud fijo a 1; ajústalo como necesites
-                                    f"{uploaded_file.name}",   # nombre con el que inmortalizas el archivo en la BD
-                                    psycopg2.Binary(contenido_binario)
-                                )
-                            )
+
 
                         cursor.execute("""
                             INSERT INTO datos (documento, tipo_documento, id, país, ciudad, direccion, telefono, fecha_nacimiento, nombre, apellido)
@@ -348,9 +330,26 @@ class Usuario:
                             VALUES (%s, %s, %s, %s, %s, %s, %s)
                         """, (st.session_state.get("id_solicitud"), documento, periodo, id_programa, st.session_state.tipo_estudiante, semestre, st.session_state.universidad
                         ))
+
+                        conn.commit()
+                        for ndoc, uploaded_file in st.session_state["archivos_subidos"].items():
+                            # Leer el contenido binario del PDF
+                            contenido_binario = uploaded_file.read()  # esto equivale a leer el archivo en 'rb'
+                            # Construir la sentencia INSERT
+                            cursor.execute(
+                                """
+                                INSERT INTO anexos (id_solicitud, nombre_doc, archivo)
+                                VALUES (%s, %s, %s);
+                                """,
+                                (
+                                    int(st.session_state.get("id_solicitud")),                          #
+                                    f"{uploaded_file.name}",   # 
+                                    psycopg2.Binary(contenido_binario)
+                                )
+                            )
                         conn.commit()
                         st.markdown(
-                            '<div class="success-message">✅ Su solicitud ha sido registrada exitosamente a las a las {fecha_actual}.</div>', unsafe_allow_html=True)
+                            f'<div class="success-message">✅ Su solicitud ha sido registrada exitosamente a las a las {fecha_actual}.</div>', unsafe_allow_html=True)
                     except Exception as e:
                         conn.rollback()
                         st.markdown(
