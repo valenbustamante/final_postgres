@@ -3,8 +3,8 @@ import psycopg2
 import pandas as pd
 import datetime
 from utils import get_connection
-
-
+from unidecode import unidecode
+import re
 fecha_actual = datetime.datetime.now().strftime("%I:%M %p -05 del %d de %B de %Y")
 class Usuario:
     def _init_(self):
@@ -233,31 +233,33 @@ class Usuario:
                     "SELECT nombre_doc FROM uninorte_db.requisitos WHERE id_programa = %s",
                     (id_programa,)
                 )
-                documentos_requeridos = cursor.fetchall()
-
+                documentos_requeridos = (cursor.fetchall())
+                
                 if documentos_requeridos:
-                    archivos_subidos = {}
-                    for doc in documentos_requeridos:
-                        nombre_doc = doc[0]
 
-                        st.markdown(
-                            f"""
-                            <div style="background-color: #f0f2f6; padding: 15px; border-left: 5px solid #0a84ff; border-radius: 8px; margin-bottom: 15px;">
-                                <strong>{nombre_doc}</strong><br>
-                            """,
-                            unsafe_allow_html=True
-                        )
+                        st.session_state["archivos_subidos"] = {}
 
-                        archivo = st.file_uploader(
-                            f"Subir archivo para: {nombre_doc}",
-                            type=["pdf", "jpg", "png"],
-                            key=f"doc_{nombre_doc}"
-                        )
+                        for doc in documentos_requeridos:
+                            nombre_doc = doc[0]  # Ejemplo: "Documento identidad"
 
-                        st.markdown("</div>", unsafe_allow_html=True)
+                            # --- Creamos una "clave segura" que no tenga espacios, tildes ni caracteres raros
+                            # Esto garantiza que Streamlit reconozca correctamente el file_uploader en cada interacción.
+                            safe_key = "doc_" + re.sub(r"\W+", "_", unidecode(nombre_doc.lower().strip()))
+                            archivo  = st.file_uploader(label=f"Subir archivo para: {nombre_doc}", type=["pdf"], key=safe_key)
 
-                        if archivo:
-                            archivos_subidos[nombre_doc] = archivo
+
+                            # Si el usuario acaba de subir un archivo, lo guardamos en session_state
+                            if archivo is not None:
+                                st.session_state["archivos_subidos"][nombre_doc] = archivo
+                                st.success(f"✅ Archivo subido para: {nombre_doc}")
+                                st.write(f"📄 Nombre del archivo: `{archivo.name}` ({archivo.size/1024:.1f} KB)")
+                            else:
+                                # SOLO mostramos una advertencia si el usuario NO ha subido NUNCA nada para este 'nombre_doc'
+                                if nombre_doc not in st.session_state["archivos_subidos"]:
+                                    st.warning(f"⚠️ No se ha subido archivo para: {nombre_doc}")
+
+                            st.markdown("---")  # Línea divisoria entre documentos
+
                 else:
                     st.markdown(
                         '<div class="info-message">⚠️ Este programa no tiene documentos requeridos definidos.</div>',
@@ -276,7 +278,7 @@ class Usuario:
             acepta_terminos = st.checkbox("Acepto los términos y condiciones de La Universidad para el Futuro ",
                                           help="Debe aceptar los términos para continuar")
 
-            # Botón de envío
+            
             submit_button = st.form_submit_button("Enviar Solicitud")
 
             if submit_button:
@@ -288,9 +290,12 @@ class Usuario:
                     error_messages.append("Por favor, ingrese un correo electrónico válido.")
                 if not telefono or not telefono.strip():
                     error_messages.append("Por favor, ingrese un número de teléfono válido.")
-                # Validar si TODOS los documentos requeridos fueron subidos
-                if not archivos_subidos or any(v is None for v in archivos_subidos.values()):
-                    error_messages.append("Debe subir todos los documentos requeridos para su programa académico.")
+                                                    # Validar si TODOS los documentos requeridos fueron subid
+                if st.session_state["archivos_subidos"]:
+                    for ndoc, uploaded_file in st.session_state["archivos_subidos"].items():
+                        st.write(f"- **{ndoc}** → `{uploaded_file.name}` ({uploaded_file.size/1024:.1f} KB)")
+                else:
+                                st.info("Aún no se ha subido ningún archivo.")           
                 if not acepta_terminos:
                     error_messages.append("Debe aceptar los términos y condiciones.")
                 if "id_solicitud" not in st.session_state:
@@ -312,10 +317,26 @@ class Usuario:
                         "tipo_estudiante": st.session_state.tipo_estudiante,
                         "semestre": semestre,
                         "universidad": st.session_state.universidad,
-                        "documentos": [file.name for file in archivos_subidos.values() if file]
+                        "documentos": [file.name for file in st.session_state["archivos_subidos"].values() if file]
                     }
 
                     try:
+                        for ndoc, uploaded_file in st.session_state["archivos_subidos"].items():
+                            # Leer el contenido binario del PDF
+                            contenido_binario = uploaded_file.read()  # esto equivale a leer el archivo en 'rb'
+                            # Construir la sentencia INSERT
+                            cursor.execute(
+                                """
+                                INSERT INTO anexos (id_solicitud, nombre_doc, archivo)
+                                VALUES (%s, %s, %s);
+                                """,
+                                (
+                                    1,                          # ej. id_solicitud fijo a 1; ajústalo como necesites
+                                    f"{uploaded_file.name}",   # nombre con el que inmortalizas el archivo en la BD
+                                    psycopg2.Binary(contenido_binario)
+                                )
+                            )
+
                         cursor.execute("""
                             INSERT INTO datos (documento, tipo_documento, id, país, ciudad, direccion, telefono, fecha_nacimiento, nombre, apellido)
                             VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
