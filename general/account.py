@@ -4,8 +4,85 @@ from datetime import datetime
 st.set_page_config(
     layout="wide"
 )
+st.markdown("""
+            <style>
+            @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap');
+            .form-container {
+                padding: 30px;
+                border-radius: 15px;
+                box-shadow: 0 6px 12px rgba(0, 0, 0, 0.1);
+                margin: 20px auto;
+                max-width: 900px;
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                font-family: 'Roboto', sans-serif;
+            }
+            .title {
+                font-size: 32px;
+                color: #E31837;
+                font-weight: 700;
+                text-align: center;
+                margin-bottom: 20px;
+                text-transform: uppercase;
+            }
+            .subtitle {
+                font-size: 20px;
+                color: #424242;
+                text-align: center;
+                margin-bottom: 30px;
+                font-weight: 400;
+            }
+            .university-header {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                width: 100%;
+                margin-bottom: 20px;
+            }
+            .logo-container {
+                display: flex;
+                justify-content: flex-end;
+            }
+            .stButton>button {
+                background-color: #E31837;
+                color: white;
+                border: 2px solid #FFC107;
+                border-radius: 12px;
+                padding: 12px 25px;
+                font-size: 16px;
+                font-weight: 700;
+                transition: all 0.3s ease;
+                margin: 5px;
+            }
+            .stButton>button:hover {
+                background-color: #FFC107;
+                color: #000000;
+                border-color: #E31837;
+            }
+            .success-message {
+                color: #2E7D32;
+                text-align: center;
+                font-weight: 700;
+                margin-top: 15px;
+            }
+            .error-message {
+                color: #D32F2F;
+                text-align: center;
+                font-weight: 700;
+                margin-top: 15px;
+            }
+            .student-type-buttons {
+                display: flex;
+                justify-content: center;
+                gap: 10px;
+                margin-bottom: 20px;
+            }
+            </style>
+        """, unsafe_allow_html=True)
 
-st.title("Tu cuenta")
+st.markdown('<div class="title">Tu Cuenta</div>',
+                    unsafe_allow_html=True)
 
 conn = get_connection()
 cursor = conn.cursor()

@@ -124,7 +124,7 @@ class Usuario:
                 st.session_state.universidad = ""
         st.markdown('</div>', unsafe_allow_html=True)
 
-        st.markdown("Por favor, complete todos los campos a continuación:")
+        st.markdown("Por favor, complete los campos a necesarios:")
 
         opciones_programas = {
                     "Ingeniería de Sistemas": 1,
@@ -157,34 +157,111 @@ class Usuario:
             ORDER BY periodo DESC
         """, (id_programa,))
         periodos_disponibles = [row[0] for row in cursor.fetchall()]
+        user_id = st.session_state.get("user_id", None)
+        cursor.execute(
+            """
+            SELECT 
+                documento,
+                tipo_documento,
+                telefono,
+                "país",
+                ciudad,
+                direccion,
+                fecha_nacimiento,
+                nombre,
+                apellido
+            FROM datos
+            WHERE id = %s
+            """,
+            (user_id,),
+        )
+        fila = cursor.fetchone()
+
+        # 2. Si fila no es None, desempacamos; si es None, dejamos valores vacíos / por defecto
+        if fila is not None:
+            documento_default       = fila[0] or ""
+            tipo_documento_default  = fila[1] or ""
+            telefono_default        = fila[2] or ""
+            pais_default            = fila[3] or ""
+            ciudad_default          = fila[4] or ""
+            direccion_default       = fila[5] or ""
+            # Para la fecha, verificamos que no sea mayor a hoy
+            hoy = datetime.date.today()
+            if fila[6] is not None and fila[6] <= hoy:
+                fecha_nacimiento_default = fila[6]
+            else:
+                fecha_nacimiento_default = hoy
+            nombre_default          = fila[7] or ""
+            apellido_default        = fila[8] or ""
+        else:
+            documento_default       = ""
+            tipo_documento_default  = ""
+            telefono_default        = ""
+            pais_default            = ""
+            ciudad_default          = ""
+            direccion_default       = ""
+            fecha_nacimiento_default = datetime.date.today()
+            nombre_default          = ""
+            apellido_default        = ""
 
         with st.form(key="solicitud_form"):
-            # Sección 1: Información Personal
+        # Sección 1: Información Personal
             st.markdown('<div class="section-title">Información Personal</div>', unsafe_allow_html=True)
             col1, col2 = st.columns(2)
+
             with col1:
+                # Generar id_solicitud
                 cursor.execute("SELECT MAX(CAST(id_solicitud AS INTEGER)) FROM formulario")
                 ultimo_id = cursor.fetchone()[0]
-                # empezar desde 1
                 if ultimo_id is None:
                     nuevo_id = 1
                 else:
                     nuevo_id = int(ultimo_id) + 1
                 id_solicitud = str(nuevo_id)
                 st.session_state.id_solicitud = id_solicitud
-                # Mostrar al usuario como solo lectura
-                st.text_input("ID de Solicitud (generado automáticamente)", value=id_solicitud, disabled=True)
-                documento = st.text_input("Número de Documento", help="Ingrese su número de documento")
-                tipo_documento = st.selectbox("Tipo de Documento", ["CC", "TI", "CE", "Pasaporte"])
-                fecha_nacimiento = st.date_input("Fecha de Nacimiento", min_value=datetime.date(1900, 1, 1), max_value=datetime.date.today())
-                nombre = st.text_input("Nombre")
-                apellido = st.text_input("Apellido")
+
+                st.text_input(
+                    "ID de Solicitud (generado automáticamente)",
+                    value=id_solicitud,
+                    disabled=True
+                )
+
+                # Campo “Número de Documento” con valor por defecto
+                documento = st.text_input(
+                    "Número de Documento",
+                    value=documento_default,
+                    help="Ingrese su número de documento"
+                )
+
+                # Selectbox de Tipo de Documento, ubicando el índice según el default
+                opciones_tipo = ["CC", "TI", "CE", "Pasaporte"]
+                if tipo_documento_default in opciones_tipo:
+                    idx_tipo = opciones_tipo.index(tipo_documento_default)
+                else:
+                    idx_tipo = 0
+                tipo_documento = st.selectbox(
+                    "Tipo de Documento",
+                    opciones_tipo,
+                    index=idx_tipo
+                )
+
+                # Date input para Fecha de Nacimiento, obligatoriamente dentro del rango
+                fecha_nacimiento = st.date_input(
+                    "Fecha de Nacimiento",
+                    value=fecha_nacimiento_default,
+                    min_value=datetime.date(1900, 1, 1),
+                    max_value=datetime.date.today()
+                )
+
+                nombre = st.text_input("Nombre", value=nombre_default)
+                apellido = st.text_input("Apellido", value=apellido_default)
+
             with col2:
-                telefono = st.text_input("Teléfono de Contacto")
-                correo = st.text_input("Correo Electrónico")
-                pais = st.text_input("País")
-                ciudad = st.text_input("Ciudad")
-                direccion = st.text_input("Dirección Residencial")
+                telefono = st.text_input("Teléfono de Contacto", value=telefono_default)
+                correo = st.text_input("Correo Electrónico")  # Este no venía de 'datos'
+                pais = st.text_input("País", value=pais_default)
+                ciudad = st.text_input("Ciudad", value=ciudad_default)
+                direccion = st.text_input("Dirección Residencial", value=direccion_default)
 
             # Sección 2: Información Académica
             st.markdown('<div class="section-title">Información Académica</div>', unsafe_allow_html=True)
@@ -199,16 +276,29 @@ class Usuario:
                 else:
                     st.warning("⚠️ No hay periodos disponibles para el programa seleccionado.")
                     periodo = None
-                st.text_input("Nombre del programa escogido por usted", value=programa_nombre, disabled=True
+
+                st.text_input(
+                    "Nombre del programa escogido por usted",
+                    value=programa_nombre,
+                    disabled=True
                 )
+
             with col4:
-                st.text_input("Tipo de estudiante", value=st.session_state.tipo_estudiante, disabled=True
+                st.text_input(
+                    "Tipo de estudiante",
+                    value=st.session_state.tipo_estudiante,
+                    disabled=True
                 )
-                # Condición para semestre 
-                # dentro del formulario, col3 o col4:
+
+                # Semestre según tipo de estudiante
                 if st.session_state.tipo_estudiante == "Regular":
                     semestre = 1
-                    st.number_input("Semestre", value=1, disabled=True, help="Los estudiantes regulares comienzan en 1")
+                    st.number_input(
+                        "Semestre",
+                        value=1,
+                        disabled=True,
+                        help="Los estudiantes regulares comienzan en 1"
+                    )
                 else:
                     semestre = st.number_input(
                         "Semestre",
@@ -217,12 +307,21 @@ class Usuario:
                         step=1,
                         help=f"Este programa tiene un máximo de {max_sem} semestres."
                     )
-                # Universidad 
+
+                # Universidad según tipo de estudiante
                 if st.session_state.tipo_estudiante in ["Regular", "Reingreso"]:
-                    st.text_input("Universidad", value=st.session_state.universidad, disabled=True)
+                    st.text_input(
+                        "Universidad",
+                        value=st.session_state.universidad,
+                        disabled=True
+                    )
                 else:
-                    universidad = st.text_input("Universidad de Origen", value=st.session_state.universidad)
-                    st.session_state.universidad = universidad
+                    universidad = st.text_input(
+                        "Universidad de Origen",
+                        value=st.session_state.universidad
+                    )
+                    st.session_state.universidad = universidad           
+
 
             # Sección 3: Documentos
             st.markdown('<div class="section-title">Documentos Requeridos</div>', unsafe_allow_html=True)
