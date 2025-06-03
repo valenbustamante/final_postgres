@@ -329,31 +329,44 @@ class Usuario:
             try:
                 # Consulta correcta según tu base de datos y esquema
                 cursor.execute(
-                    "SELECT nombre_doc FROM uninorte_db.requisitos WHERE id_programa = %s",
+                    "SELECT nombre_doc, tipo_req FROM uninorte_db.requisitos WHERE id_programa = %s",
                     (id_programa,)
                 )
-                documentos_requeridos = (cursor.fetchall())
-                
+                filas_req = cursor.fetchall()  # lista de tuplas: [(nombre_doc1, True), (nombre_doc2, False), ...]
+
+                # Construimos un diccionario { 'campo': True/False, ... }
+                tipo_req_dict = {}
+                for nombre_doc, tipo_req_db in filas_req:
+                    # si tu tabla almacena 1/0 o 'S'/'N', tendrías que convertirlo aquí. 
+                    # Asumimos que tipo_req_db ya viene como BOOLEAN (True/False).
+                    tipo_req_dict[nombre_doc] = tipo_req_db
+                documentos_requeridos = tipo_req_dict
                 if documentos_requeridos:
 
                         st.session_state["archivos_subidos"] = {}
 
-                        for doc in documentos_requeridos:
-                            nombre_doc = doc[0]  # Ejemplo: "Documento identidad"
-
-                            # --- Creamos una "clave segura" que no tenga espacios, tildes ni caracteres raros
-                            # Esto garantiza que Streamlit reconozca correctamente el file_uploader en cada interacción.
+                        for nombre_doc, es_obligatorio in documentos_requeridos.items():
+                            # Creamos una llave “segura” para cada file_uploader
                             safe_key = "doc_" + re.sub(r"\W+", "_", unidecode(nombre_doc.lower().strip()))
-                            archivo  = st.file_uploader(label=f"Subir archivo para: {nombre_doc}", type=["pdf"], key=safe_key)
 
+                            # Ajustamos el label según obligatorio/opcional
+                            label = f"Subir archivo para: {nombre_doc}"
+                            if es_obligatorio == "Obligatorio":
+                                label += "  *(Obligatorio)*"
+                            else:
+                                label += "  *(Opcional)*"
 
-                            # Si el usuario acaba de subir un archivo, lo guardamos en session_state
+                            archivo = st.file_uploader(label=label, type=["pdf"], key=safe_key)
+
+                            # Si se acaba de subir, lo guardamos en session_state
                             if archivo is not None:
                                 st.session_state["archivos_subidos"][nombre_doc] = archivo
-                                st.success(f"✅ Archivo subido para: {nombre_doc}")
-                                st.write(f"📄 Nombre del archivo: `{archivo.name}` ({archivo.size/1024:.1f} KB)")
+                                st.success(f"✅ Archivo cargado para «{nombre_doc}»")
+                                st.write(f"• Nombre: `{archivo.name}` ({archivo.size/1024:.1f} KB)")
 
-                            st.markdown("---")  # Línea divisoria entre documentos
+                            # Separador visual
+                            st.markdown("---")
+                    # Línea divisoria entre documentos
 
                 else:
                     st.markdown(
@@ -388,6 +401,7 @@ class Usuario:
                                                     # Validar si TODOS los documentos requeridos fueron subid
                 if st.session_state["archivos_subidos"]:
                     for ndoc, uploaded_file in st.session_state["archivos_subidos"].items():
+
                         st.write(f"- **{ndoc}** → `{uploaded_file.name}` ({uploaded_file.size/1024:.1f} KB)")
                 else:
                                 st.info("Aún no se ha subido ningún archivo.")           
@@ -432,20 +446,38 @@ class Usuario:
 
                         conn.commit()
                         for ndoc, uploaded_file in st.session_state["archivos_subidos"].items():
+                            if tipo_req_dict[ndoc] == 'Opcional' and uploaded_file is not None:
                             # Leer el contenido binario del PDF
-                            contenido_binario = uploaded_file.read()  # esto equivale a leer el archivo en 'rb'
-                            # Construir la sentencia INSERT
-                            cursor.execute(
-                                """
-                                INSERT INTO anexos (id_solicitud, nombre_doc, archivo)
-                                VALUES (%s, %s, %s);
-                                """,
-                                (
-                                    int(st.session_state.get("id_solicitud")),                          #
-                                    f"{uploaded_file.name}",   # 
-                                    psycopg2.Binary(contenido_binario)
+                                contenido_binario = uploaded_file.read()  # esto equivale a leer el archivo en 'rb'
+                                # Construir la sentencia INSERT
+
+                                cursor.execute(
+                                    """
+                                    INSERT INTO anexos (id_solicitud, nombre_doc, archivo)
+                                    VALUES (%s, %s, %s);
+                                    """,
+                                    (
+                                        int(st.session_state.get("id_solicitud")),                          #
+                                        f"{ndoc}",   # 
+                                        psycopg2.Binary(contenido_binario)
+                                    )
                                 )
-                            )
+                            else:
+                                contenido_binario = uploaded_file.read()  # esto equivale a leer el archivo en 'rb'
+                                # Construir la sentencia INSERT
+
+                                cursor.execute(
+                                    """
+                                    INSERT INTO anexos (id_solicitud, nombre_doc, archivo)
+                                    VALUES (%s, %s, %s);
+                                    """,
+                                    (
+                                        int(st.session_state.get("id_solicitud")),                          #
+                                        f"{ndoc}",   # 
+                                        psycopg2.Binary(contenido_binario)
+                                    )
+                                )
+
                         conn.commit()
                         st.markdown(
                             f'<div class="success-message">✅ Su solicitud ha sido registrada exitosamente a las a las {fecha_actual}.</div>', unsafe_allow_html=True)
