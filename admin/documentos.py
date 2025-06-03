@@ -213,13 +213,6 @@ def display_pdf(pdf_data, file_name):
         '''
         st.markdown(pdf_display, unsafe_allow_html=True)
         
-        st.download_button(
-            label="Descargar documento",
-            data=pdf_data,
-            file_name=file_name,
-            mime="application/pdf",
-            use_container_width=True
-        )
     else:
         st.warning("No se pudo cargar el documento")
 

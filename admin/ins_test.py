@@ -420,16 +420,6 @@ def main():
                                 st.markdown(f"""<div class='document-item'>
                                     <span style='color: #2c3e50;'>📄 {doc[0]}</span>
                                 </div>""", unsafe_allow_html=True)
-                            with col2:
-                                if doc[1]:  # Si hay archivo
-                                    file_data = bytes(doc[1])
-                                    st.download_button(
-                                        label="⬇️ Descargar",
-                                        data=file_data,
-                                        file_name=f"{doc[0]}.pdf",
-                                        mime="application/pdf",
-                                        key=f"doc_{id_solicitud}_{doc[0]}"
-                                    )
                     else:
                         st.info("No hay documentos adjuntos para esta solicitud.")
 
