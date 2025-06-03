@@ -374,7 +374,7 @@ try:
                                     if st.button("Aprobar", key=f"aprobar_{doc_id}"):
                                         cur.execute("""
                                             UPDATE anexos 
-                                            SET aprobacion = 'aprobado'
+                                            SET aprobacion = 'Aprobado'
                                             WHERE id_documento = %s
                                         """, (doc_id,))
                                         conn.commit()
@@ -385,7 +385,7 @@ try:
                                     if st.button("Rechazar", key=f"rechazar_{doc_id}"):
                                         cur.execute("""
                                             UPDATE anexos 
-                                            SET aprobacion = 'rechazado'
+                                            SET aprobacion = 'Rechazado'
                                             WHERE id_documento = %s
                                         """, (doc_id,))
                                         conn.commit()

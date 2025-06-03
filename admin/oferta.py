@@ -67,14 +67,7 @@ st.markdown("""
     }
     </style>
 """, unsafe_allow_html=True)
-def get_connection():
-    return psycopg2.connect(
-        host='localhost',
-        database=os.getenv("DATABASE"),
-        user=os.getenv("USER"),
-        password=os.getenv("PASSWORD"),
-        port='5432'
-    )
+
 def get_academic_programs():
     conn = get_connection()
     cur = conn.cursor()

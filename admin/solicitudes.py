@@ -394,36 +394,7 @@ try:
                     <p><strong>Homologaciones pendientes:</strong> {"Sí" if tiene_homologaciones else "No"}</p>
                     </div>""", unsafe_allow_html=True)
 
-                # Sección de navegación
-                st.markdown("""<div class='nav-section'>
-                <h4>Acciones disponibles</h4>
-                """, unsafe_allow_html=True)
-
-                col1, col2 = st.columns(2)
-                
-                with col1:
-                    if estado_docs != "Sin documentos":
-                        st.markdown(f"""
-                        <a href="/admin/documentos?id={id_solicitud}" target="_self" class="nav-button documentos">
-                            {"✓ Revisar" if estado_docs == "Pendiente" else "👁 Ver"} documentos
-                        </a>
-                        """, unsafe_allow_html=True)
-                    else:
-                        st.info("No hay documentos para revisar")
-
-                with col2:
-                    if tipo_real == "Transferencia Externa":
-                        st.markdown(f"""
-                        <a href="/admin/homologaciones?id={id_solicitud}" target="_self" class="nav-button homologaciones">
-                            {"✓ Revisar" if tiene_homologaciones else "👁 Ver"} homologaciones
-                        </a>
-                        """, unsafe_allow_html=True)
-                    else:
-                        st.info("No aplican homologaciones")
-
                 st.markdown("</div>", unsafe_allow_html=True)
-
-                # TODO: Agregar detalles del formulario de inscripción
 
     else:
         st.info("No se encontraron solicitudes que coincidan con los filtros seleccionados")
