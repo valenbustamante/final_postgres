@@ -5,7 +5,7 @@ import datetime
 from utils import get_connection
 from unidecode import unidecode
 import re
-fecha_actual = datetime.datetime.now().strftime("%I:%M %p -05 del %d de %B de %Y")
+fecha_actual = datetime.datetime.now()  
 class Usuario:
     def _init_(self):
         pass
@@ -430,61 +430,61 @@ class Usuario:
                     }
 
                     try:
-
-
+                        # Insertar en datos
                         cursor.execute("""
                             INSERT INTO datos (documento, tipo_documento, id, país, ciudad, direccion, telefono, fecha_nacimiento, nombre, apellido)
                             VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
                             ON CONFLICT (documento) DO NOTHING
-                        """, (documento, tipo_documento, st.session_state.user_id, pais, ciudad, direccion, telefono, fecha_nacimiento, nombre, apellido  
+                        """, (
+                            documento, tipo_documento, st.session_state.user_id, pais, ciudad,
+                            direccion, telefono, fecha_nacimiento, nombre, apellido
                         ))
+
+                        # Insertar en formulario
                         cursor.execute("""
                             INSERT INTO formulario (id_solicitud, documento, periodo, id_programa, tipo_estudiante, semestre, universidad)
                             VALUES (%s, %s, %s, %s, %s, %s, %s)
-                        """, (st.session_state.get("id_solicitud"), documento, periodo, id_programa, st.session_state.tipo_estudiante, semestre, st.session_state.universidad
+                        """, (
+                            st.session_state.get("id_solicitud"), documento, periodo, id_programa,
+                            st.session_state.tipo_estudiante, semestre, st.session_state.universidad
                         ))
 
-                        conn.commit()
+                        # Insertar registro en pagos
+                        cursor.execute("""
+                            INSERT INTO pagos (id_solicitud, estado, fecha)
+                            VALUES (%s, %s, %s)
+                        """, (
+                            st.session_state.get("id_solicitud"), 'Pendiente', fecha_actual
+                        ))
+
+                        # Insertar anexos
                         for ndoc, uploaded_file in st.session_state["archivos_subidos"].items():
-                            if tipo_req_dict[ndoc] == 'Opcional' and uploaded_file is not None:
-                            # Leer el contenido binario del PDF
-                                contenido_binario = uploaded_file.read()  # esto equivale a leer el archivo en 'rb'
-                                # Construir la sentencia INSERT
-
+                            if uploaded_file is not None:
+                                contenido_binario = uploaded_file.read()
                                 cursor.execute(
                                     """
                                     INSERT INTO anexos (id_solicitud, nombre_doc, archivo)
-                                    VALUES (%s, %s, %s);
+                                    VALUES (%s, %s, %s)
                                     """,
                                     (
-                                        int(st.session_state.get("id_solicitud")),                          #
-                                        f"{ndoc}",   # 
-                                        psycopg2.Binary(contenido_binario)
-                                    )
-                                )
-                            else:
-                                contenido_binario = uploaded_file.read()  # esto equivale a leer el archivo en 'rb'
-                                # Construir la sentencia INSERT
-
-                                cursor.execute(
-                                    """
-                                    INSERT INTO anexos (id_solicitud, nombre_doc, archivo)
-                                    VALUES (%s, %s, %s);
-                                    """,
-                                    (
-                                        int(st.session_state.get("id_solicitud")),                          #
-                                        f"{ndoc}",   # 
+                                        int(st.session_state.get("id_solicitud")),
+                                        ndoc,
                                         psycopg2.Binary(contenido_binario)
                                     )
                                 )
 
                         conn.commit()
                         st.markdown(
-                            f'<div class="success-message">✅ Su solicitud ha sido registrada exitosamente a las a las {fecha_actual}.</div>', unsafe_allow_html=True)
+                            f'<div class="success-message">✅ Su solicitud ha sido registrada exitosamente a las {fecha_actual}.</div>',
+                            unsafe_allow_html=True
+                        )
+
                     except Exception as e:
                         conn.rollback()
                         st.markdown(
-                            f'<div class="error-message">❌ Error al registrar la solicitud: {str(e)}</div>', unsafe_allow_html=True)
+                            f'<div class="error-message">❌ Error al registrar la solicitud: {str(e)}</div>',
+                            unsafe_allow_html=True
+                        )
 
         st.markdown('</div>', unsafe_allow_html=True)
         cursor.close()
@@ -579,38 +579,96 @@ class Usuario:
             '<div class="title">Solicitud de Transferencia Externa</div>', unsafe_allow_html=True)
         st.markdown('<div class="subtitle">Solicite la homologación de materias para su transferencia a La Universidad para el Futuro.</div>', unsafe_allow_html=True)
 
-        # Mostrar tabla de materias homologables
-        st.markdown("**Materias Homologables Disponibles:**")
-        df = pd.DataFrame(result)
-        st.dataframe(df, use_container_width=True)
+        # Entrada del ID de solicitud
+        id_solicitud_input = st.text_input("Ingrese su ID de Solicitud", help="Debe haber enviado previamente el formulario general.")
 
-        st.markdown("Por favor, complete los campos a continuación:")
+        if id_solicitud_input:
+            try:
+                id_solicitud = int(id_solicitud_input)
 
-        with st.form(key="transferencia_form"):
-            seleccion = st.selectbox("Programa Académico", options=list(
-                result['Nombre']), help="Seleccione el programa para la homologación")
-            justificacion = st.text_area("Justificación de la Homologación",
-                                         help="Explique por qué solicita la homologación de materias", height=150)
+                # Consultar el id_programa desde la tabla formulario
+                cursor.execute("""
+                    SELECT id_programa FROM uninorte_db.formulario WHERE id_solicitud = %s
+                """, (id_solicitud,))
+                resultado = cursor.fetchone()
 
-            # Botón de envío
-            submit_button = st.form_submit_button("Enviar Solicitud")
+                if resultado:
+                    id_programa = resultado[0]
 
-            if submit_button:
-                # Validar que la justificación no esté vacía
-                if not justificacion.strip():
-                    st.markdown(
-                        '<div class="error-message">❌ La justificación no puede estar vacía.</div>', unsafe_allow_html=True)
+                    # Obtener materias del programa correspondiente
+                    cursor.execute("""
+                        SELECT nombre, creditos, semestre
+                        FROM uninorte_db.asignaturas
+                        WHERE id_programa = %s
+                        ORDER BY semestre
+                    """, (id_programa,))
+                    materias = cursor.fetchall()
+
+                    # Obtener el nombre del programa
+                    cursor.execute("""
+                        SELECT programa FROM uninorte_db.oferta WHERE id_programa = %s
+                    """, (id_programa,))
+                    programa_nombre = cursor.fetchone()[0]
+
+                    st.markdown(f"###  Tu carrera es: **{programa_nombre}**")
+
+                    # Mostrar tabla de materias
+                    st.markdown("**Materias Homologables Disponibles:**")
+                    df = pd.DataFrame(materias, columns=["Nombre", "Créditos", "Semestre"])
+                    st.dataframe(df, use_container_width=True)
+
+                    # Formulario para la homologación
+                    st.markdown("Por favor, complete los campos a continuación:")
+                    with st.form(key="transferencia_form"):
+                        seleccion_materia = st.selectbox(
+                            "Seleccione una materia para homologar",
+                            options=df["Nombre"].tolist(),
+                            help="Seleccione la materia que desea homologar."
+                        )
+
+                        justificacion = st.text_area(
+                            "Justificación de la Homologación",
+                            help="Explique por qué solicita la homologación de materias",
+                            height=150
+                        )
+
+                        submit_button = st.form_submit_button("Enviar Solicitud")
+
+                        if submit_button:
+                            if not justificacion.strip():
+                                st.markdown(
+                                    '<div class="error-message">❌ La justificación no puede estar vacía.</div>', unsafe_allow_html=True)
+                            else:
+                                try:
+                                    # Obtener id_asignatura
+                                    cursor.execute("""
+                                        SELECT id_asignatura FROM uninorte_db.asignaturas
+                                        WHERE nombre = %s AND id_programa = %s
+                                    """, (seleccion_materia, id_programa))
+                                    id_asignatura = cursor.fetchone()[0]
+
+                                    # Insertar en homologar
+                                    cursor.execute("""
+                                        INSERT INTO homologar (id_solicitud, id_asignatura, estado, justificacion, decision)
+                                        VALUES (%s, %s, %s, %s, %s)
+                                    """, (id_solicitud, id_asignatura, "Pendiente", justificacion, "Por definir"))
+                                    conn.commit()
+
+                                    st.markdown(
+                                        '<div class="success-message">✅ Su solicitud de homologación ha sido enviada exitosamente.</div>',
+                                        unsafe_allow_html=True
+                                    )
+                                except Exception as e:
+                                    st.markdown(
+                                        f'<div class="error-message">❌ Error al enviar la solicitud: {str(e)}</div>',
+                                        unsafe_allow_html=True
+                                    )
                 else:
-                    try:
-                        # Aquí podrías agregar una inserción en la base de datos si es necesario
-                        st.markdown(
-                            '<div class="success-message">✅ Su solicitud de transferencia externa ha sido enviada exitosamente a las a las {fecha_actual}.</div>', unsafe_allow_html=True)
-                        st.write("**Detalles de su solicitud:**")
-                        st.write(f"- **Programa Seleccionado:** {seleccion}")
-                        st.write(f"- **Justificación:** {justificacion}")
-                    except Exception as e:
-                        st.markdown(
-                            f'<div class="error-message">❌ Error al enviar la solicitud: {str(e)}</div>', unsafe_allow_html=True)
+                    st.markdown(
+                        '<div class="error-message">❌ No se encontró una solicitud con ese ID.</div>', unsafe_allow_html=True)
+            except ValueError:
+                st.markdown(
+                    '<div class="error-message">❌ El ID de solicitud debe ser un número entero.</div>', unsafe_allow_html=True)
 
         st.markdown('</div>', unsafe_allow_html=True)
         cursor.close()
@@ -768,11 +826,28 @@ class Usuario:
                                 st.markdown(f'<p class="amount">Monto a Pagar: ${inscripcion:,.2f} COP</p>', unsafe_allow_html=True)
                                 st.markdown('</div>', unsafe_allow_html=True)
 
+                            try:
+                                cursor.execute("""
+                                    UPDATE pagos
+                                    SET estado = %s, fecha = %s
+                                    WHERE id_solicitud = %s
+                                """, ('Completado', fecha_actual, id_solicitud))
+                                conn.commit()
+
                                 st.markdown(
-                                    f'<div class="success-message">✅ Pago simulado exitosamente a las {fecha_actual}.</div>', unsafe_allow_html=True )
+                                    f'<div class="success-message">✅ Pago simulado exitosamente a las {fecha_actual}.</div>',
+                                    unsafe_allow_html=True
+                                )
+                            except Exception as e:
+                                st.markdown(
+                                    f'<div class="error-message">❌ Error al registrar el pago en la base de datos: {str(e)}</div>',
+                                    unsafe_allow_html=True
+                                )
                     except Exception as e:
                         st.markdown(
-                            f'<div class="error-message">❌ Error al consultar la solicitud: {str(e)}</div>', unsafe_allow_html=True)
+                            f'<div class="error-message">❌ Error al consultar la solicitud: {str(e)}</div>',
+                            unsafe_allow_html=True
+                        )
 
         # Al final del archivo
         st.markdown('</div>', unsafe_allow_html=True)
