@@ -365,7 +365,14 @@ def show_timeline():
                         WHERE a.id_solicitud = f.id_solicitud
                     ) THEN 'Aprobado'
                     ELSE 'Sin documentos'
-                END as estado_docs
+                END as estado_docs,
+                CASE 
+                    WHEN EXISTS (
+                        SELECT 1 FROM aprobados ap 
+                        WHERE ap.id_solicitud = f.id_solicitud
+                    ) THEN 'Aprobado'
+                    ELSE 'Pendiente'
+                END as decision_final
             FROM formulario f
             LEFT JOIN oferta p ON f.id_programa = p.id_programa
             LEFT JOIN pagos pg ON f.id_solicitud = pg.id_solicitud
@@ -385,7 +392,7 @@ def show_timeline():
             return
 
         for solicitud in solicitudes:
-            id_solicitud, documento, tipo_estudiante, id_programa, nombre_programa, estado_pago, fecha_solicitud, estado_docs = solicitud
+            id_solicitud, documento, tipo_estudiante, id_programa, nombre_programa, estado_pago, fecha_solicitud, estado_docs, decision_final = solicitud
             
             doc_status_class = {
                 'Pendiente': 'status-pending',
@@ -399,6 +406,11 @@ def show_timeline():
                 None: 'status-rejected'
             }.get(estado_pago, 'status-rejected')
 
+            decision_final_class = {
+                'Aprobado': 'status-approved',
+                'Pendiente': 'status-pending'
+            }.get(decision_final, 'status-pending')
+
             st.markdown(f"""
                 <div class="timeline-item">
                     <div class="timeline-date">
@@ -408,11 +420,11 @@ def show_timeline():
                         <h3>{tipo_estudiante}</h3>
                         <p><strong>Programa:</strong> {nombre_programa}</p>
                         <div class="status-container">
-                            <span class="status-badge {doc_status_class}">
-                                Documentos: {estado_docs}
-                            </span>
                             <span class="status-badge {pago_status_class}">
                                 Pago: {estado_pago.capitalize() if estado_pago else 'No registrado'}
+                            </span>
+                            <span class="status-badge {decision_final_class}">
+                                Decisión Final: {decision_final}
                             </span>
                         </div>
                     </div>
